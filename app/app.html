@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Hello Electron React!</title>
+    <script>window.$ = window.jQuery = require('jquery');</script>
     <script>
       (function() {
         if (!process.env.HOT) {
@@ -17,6 +18,8 @@
   </head>
   <body>
     <div id="root"></div>
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./style/style.css">
     <script>
       {
         const scripts = [];

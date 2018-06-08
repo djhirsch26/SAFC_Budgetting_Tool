@@ -10,7 +10,7 @@ const history = createHashHistory();
 const router = routerMiddleware(history);
 const enhancer = applyMiddleware(thunk, router);
 
-function configureStore(initialState?: counterStateType) {
+function configureStore(initialState?: {counterStateType}) {
   return createStore(rootReducer, initialState, enhancer);
 }
 
