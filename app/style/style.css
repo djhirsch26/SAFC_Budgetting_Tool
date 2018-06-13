@@ -7,6 +7,8 @@
 
 .lowerBlock {
   height: 90vh;
+  overflow-y: scroll;
+  padding-bottom: 5vh;
 }
 
 .topbar h3 {
