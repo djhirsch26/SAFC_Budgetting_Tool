@@ -20,7 +20,7 @@
       {
         "label": "Supporting Documentation",
         "name": "supporting",
-        "type": "text",
+        "type": "file",
         "error": "Please Upload Supporting Documentation"
       }
     ]

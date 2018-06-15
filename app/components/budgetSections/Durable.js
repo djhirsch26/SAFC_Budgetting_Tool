@@ -6,8 +6,6 @@ import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
 
-import addFile from '../../actions/formHelper'
-
 var durableJson = require('./durable.json');
 
 import validate from '../validate'
@@ -43,11 +41,12 @@ class Durable extends Component {
             e.preventDefault();
             console.log(e)
             console.log(e.target.files[0])
-            // DONT MAKE THIS SO DARN GENERAL
+            // TODO: DONT MAKE THIS SO DARN GENERAL
             props.dispatch(change('durable', 'file', [...e.target.files]))
           }
           inpLabDivClass = ''
           other={}
+          // TODO: MAKE THIS LOAD UP RIGHT
           extraField=<Field name="file" component='input' type="hidden"/>
           break;
       case 'checkbox':
@@ -210,7 +209,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return bindActionCreators({
-    addFile: addFile
+
 })
 }
 
