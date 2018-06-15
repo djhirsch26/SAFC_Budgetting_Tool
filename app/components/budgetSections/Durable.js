@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import {connect} from 'react-redux';
-import { Field, FieldArray, reduxForm} from 'redux-form';
+import { Field, FieldArray, reduxForm, change} from 'redux-form';
 import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
+
+import addFile from '../../actions/formHelper'
 
 var durableJson = require('./durable.json');
 
@@ -15,25 +17,38 @@ class Durable extends Component {
 
   constructor(props) {
     super(props)
-    this.opened = {}
+    this.init = false
+    this.opened = []
   }
-
 
   renderField(field) {
     const {meta : {touched, error}} = field;
+    var props = field.prop
+    console.log(props)
     const className = `form-group ${touched && error ? "has-danger" : ""} budgetField`;
-
     var mainClass;
     var labelClass;
     var inputClass;
     var extraStyle = {}
+    var onChange = ()=>{}
     var inpLabDivClass = ''
+    var other = field.input
+    var extraField = <div/>
     switch(field.type) {
       case 'file':
           mainClass = 'form-group row'
           labelClass = 'col-form-label col-sm-6'
           inputClass = 'col-sm-6'
+          onChange = (e) => {
+            e.preventDefault();
+            console.log(e)
+            console.log(e.target.files[0])
+            // DONT MAKE THIS SO DARN GENERAL
+            props.dispatch(change('durable', 'file', [...e.target.files]))
+          }
           inpLabDivClass = ''
+          other={}
+          extraField=<Field name="file" component='input' type="hidden"/>
           break;
       case 'checkbox':
           mainClass = 'form-check'
@@ -51,21 +66,19 @@ class Durable extends Component {
           inputClass = 'form-control'
           break;
     }
-
     var input = <input
     id = 'input'
     className= {inputClass}
     type={field.type}
-    {...field.input}
+    onChange={onChange}
+    {...other}
     />
-
-    var label = <label className={labelClass} for='input'>{field.label}</label>
-
+    var label = <label className={labelClass}>{field.label}</label>
     var inpLab = field.type=='checkbox' ? <div className={inpLabDivClass}>{input}{label}</div> : <div className={inpLabDivClass}>{label}{input}</div>
-
     return(
       <div className={mainClass} style={{paddingTop: '10px', ...extraStyle}}>
         {inpLab}
+        {extraField}
         <div className="text-help">
         {touched ? error : ""}
         </div>
@@ -73,132 +86,60 @@ class Durable extends Component {
       );
   }
 
+  renderGoods({fields, prop, init, opened, renderField, questions, remove, meta: {error, submitFailed}}) {
+    if(!init && fields.length==0) {
+      fields.push({})
+      opened.push(true)
+    }
 
+    var onAdd = function()  {
+      fields.push({})
+      opened.push(false)
+    }
 
-  renderGoods({fields, renderField, meta: {error, submitFailed}}) {
-    // const renderSimple = this.renderSimple.bind(this)
+    var onRemove = function(index) {
+      return (function() {
+        opened.splice(index, 1)
+        fields.remove(index)
+      })
+    }
 
-    // function renderField(field) {
-    // 	// const {meta : {touched, error}} = field;
-    // 	// const className = `form-group ${touched && error ? "has-danger" : ""} budgetField`;
-    //
-    //   var mainClass;
-    //   var labelClass;
-    //   var inputClass;
-    //   var extraStyle = {}
-    //   var inpLabDivClass = ''
-    //   switch(field.type) {
-    //     case 'file':
-    //         mainClass = 'form-group row'
-    //         labelClass = 'col-form-label col-sm-6'
-    //         inputClass = 'col-sm-6'
-    //         inpLabDivClass = ''
-    //         break;
-    //     case 'checkbox':
-    //         mainClass = 'form-check'
-    //         labelClass = 'form-check-label'
-    //         inputClass = 'form-check-input'
-    //         break;
-    //     case 'text':
-    //         mainClass = 'form-group'
-    //         labelClass = ''
-    //         inputClass = 'form-control'
-    //         break;
-    //     default:
-    //         mainClass = 'form-group'
-    //         labelClass = ''
-    //         inputClass = 'form-control'
-    //         break;
-    //   }
-    //
-    //   var input = <input
-    //   id = 'input'
-    //   className= {inputClass}
-    //   type={field.type}
-    //   {...field.input}
-    //   />
-    //
-    //   var label = <label className={labelClass} for='input'>{field.label}</label>
-    //
-    //   var inpLab = field.type=='checkbox' ? <div className={inpLabDivClass}>{input}{label}</div> : <div className={inpLabDivClass}>{label}{input}</div>
-    //
-    // 	return(
-    // 		<div className={mainClass} style={{paddingTop: '10px', ...extraStyle}}>
-    //       {inpLab}
-    // 			<div className="text-help">
-    // 			</div>
-    // 		</div>
-    // 		);
-    // }
-    // {touched ? error : ""}
+    var onOpen = function(index) {
+      return (function() {
+        opened[index]=true
+        console.log('Op', opened)
 
+      })
+    }
 
-    // const renderCollapsable = () => (
-    //     {durableJson.map(({label, name, type='text'}, index2) => {
-    //       return(
-    //         <Field
-    //           key={`${good}.name_${index}_${index2}`}
-    //     			label={label}
-    //     			name={`${good}.name_${index}_${index2}`}
-    //           type={type}
-    //     			component={renderField}
-    //     		/>}
-    // )
-    // {
-    //   var {index, good} = field
-    //   const goods = durableJson.map(({label, name, type='text'}, index2) => {
-    //     return(
-    //       <Field
-    //         key={`${good}.name_${index}_${index2}`}
-    //   			label={label}
-    //   			name={`${good}.name_${index}_${index2}`}
-    //         type={type}
-    //   			component={renderField}
-    //   		/>
-    //   )
-    //   })
-    //
-    //   return(<div>{goods}</div>)
-    // }
+    var onClose = function(index) {
+      return (function() {
+        opened[index]=false
+        console.log('Op', opened)
+      })
+    }
 
-
-
-
-
-    // console.log(props)
-
-    // const fieldList = fields.map((good, index) => {
-    //   return (
-    //   <div key={`HOW${index}`}>
-    //   <Field
-    //     name={`HOW${index}`}
-    //     index={index}
-    //     good={good}
-    //     component={renderCollapsable}
-    //   />
-    //   </div>
-    // )
-
-    // })
-    //test
+    console.log('Opened', opened)
 
     return(
       <div>
-      Hi
-      <button type="button" onClick={() => fields.push({})}>Add Member</button>
-      <div>
+      <button className='btn btn-secondary'type="button" onClick={onAdd}>Add Durable Good</button>
+      <div style={{paddingTop: '3%'}}>
         {
         fields.map((good,index) => {
+          var triggerText = prop.durable.values && prop.durable.values.goods && prop.durable.values.goods[index] && prop.durable.values.goods[index].name!=undefined ? prop.durable.values.goods[index].name : `Durable Good ${index}`
         return(
-          <div className='collapser'>
-          <Collapsible trigger={`Durable Good ${index}`}>
-          {durableJson.map(({label, name, type='text'}, index2) => {
+          <div key={index} className='collapser' style={{paddingBottom: '2%', position: 'relative'}}>
+          <Collapsible trigger={triggerText} open={opened[index]} onOpen={onOpen(index)} onClose={onClose(index)}>
+          <button className='btn btn-danger' onClick={onRemove(index)} style={{position: 'block', float: 'right', margin: '5px', marginTop: '5px'}}>Remove Good</button>
+          {questions.map(({label, name, type='text'}, index2) => {
         return(
           <Field
-            key={`${good}.${name}_${index}_${index2}`}
+            key={`${good}.${name}_${index2}`}
             label={label}
-            name={`${good}.${name}_${index}_${index2}`}
+            name={`${good}.${name}`}
             type={type}
+            prop={prop}
             component={renderField}
           />
         )})}
@@ -218,31 +159,40 @@ class Durable extends Component {
 
   render() {
 
-  		const {handleSubmit} =this.props;
+  		const {handleSubmit} = this.props;
 
-      // const renderGoods = this.renderGoods
 
-      const fields = durableJson.map(({label, name, type='text'}, index2) => {
+      const repeated = durableJson.repeat ?
+      durableJson.repeat.map((questions, index) => {
+        return (
+          <FieldArray name='goods' key={index} prop={this.props} opened={this.opened} init={this.init} renderField={this.renderField} questions={questions} component={this.renderGoods}/>
+        )
+        })
+      : <div/>
+
+      this.init=true
+
+      const fields = durableJson.single ?
+      <div className='singleFields'>
+      {durableJson.single.map(({label, name, type='text'}, index2) => {
         return(
           <Field
             key={name}
       			label={label}
       			name={name}
             type={type}
+            prop={this.props}
       			component={this.renderField}
       		/>
-        )})
-
-        // <FieldArray name='goods' renderField={this.renderField} component={this.renderGoods}/>
+        )})} </div> : <div/>
 
   		return(
       <div>
 
   		<form onSubmit={handleSubmit(this.onSubmit.bind(this))}>
-        <div style={{width: '98%', paddingLeft: '3%'}}>
-          <div style={{paddingBottom: '30px'}}>
-          <FieldArray name='goods' renderField={this.renderField} component={this.renderGoods}/>
-          </div>
+        <div style={{width: '98%', paddingLeft: '3%', paddingTop: '3%'}}>
+          {repeated}
+          {fields}
   			  <button type="submit" className="btn btn-primary">Add to Budget</button>
   			  <Link to="/" className="btn btn-danger">Cancel</Link>
         </div>
@@ -254,19 +204,19 @@ class Durable extends Component {
 
 function mapStateToProps(state) {
   return {
-    budget: state
+    durable: state.form.durable
   };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch, ownProps) {
   return bindActionCreators({
-
-  }, dispatch);
+    addFile: addFile
+})
 }
 
 export default reduxForm({
 	validate,
-	form: 'Budget',
+	form: 'durable',
   destroyOnUnmount: false
 })(
 connect(mapStateToProps, mapDispatchToProps)(Durable)

@@ -122,14 +122,37 @@ body {
   margin-top: 30px;
 }
 
-.collapser .Collapsible__trigger {
-  background-color: blue;
+.singleFields {
+  background-color: white;
+  color: #404040;
+  padding-left: 1%;
 }
 
-.collapser .Collapsible {
-  background-color: gray;
+.collapser .Collapsible__trigger {
+  background-color: #e6eaf2;
+  display: block;
+  padding-left: 1%;
+  font-size: 18px;
+  color: #404040;
+  /* border: thin solid black; */
+  border-bottom: medium solid white;
+}
+
+.collapser .Collapsible__trigger::after {
+  font-family: 'FontAwesome';
+  content: '\F106';
+  float: right;
+  margin-right: 10px;
+  /* display: block; */
+  transition: transform 600ms;
+}
+
+.collapser .Collapsible__trigger.is-open::after {
+  transform: rotateZ(180deg);
 }
 
 .collapser .Collapsible__contentOuter {
-  background-color: green;
+  background-color: white;
+  color: #404040;
+  padding-left: 1%;
 }

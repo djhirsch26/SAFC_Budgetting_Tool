@@ -5,14 +5,14 @@ function validate(values) {
 
 	//Validate Input
 
-  durableJson.forEach(({name, label, errorMessage}) => {
-    if(!values[name]) {
-      errors[name] = errorMessage
-    }
-  })
-	if(!values.name) {
-		errors.title = "Enter a Title";
-	}
+  // durableJson.forEach(({name, label, errorMessage}) => {
+  //   if(!values[name]) {
+  //     errors[name] = errorMessage
+  //   }
+  // })
+	// if(!values.name) {
+	// 	errors.title = "Enter a Title";
+	// }
 	// if(!values.categories) {
 	// 	errors.categories = "Enter a Category";
 	// }
