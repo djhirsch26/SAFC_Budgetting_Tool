@@ -1,29 +1,37 @@
 {
+  "name": "durable",
   "repeat": [
-    [
-      {
-      "label" : "Name of Good",
-      "name": "name",
-      "errorMessage": "Enter a name for this good"
-      },
-      {
-        "label": "Where will this item be stored",
-        "sublabel": "This must be a location on Cornell's Campus",
-        "name": "location",
-        "errorMessage": "Please Enter a location"
-      },
-      {
-        "label": "Does the good have a life of more than 1 year",
-        "name": "life",
-        "type": "checkbox"
-      },
-      {
-        "label": "Supporting Documentation",
-        "name": "supporting",
-        "type": "file",
-        "error": "Please Upload Supporting Documentation"
-      }
-    ]
+    {
+      "addButton": "Add Durable Good",
+      "defaultTriggerText": "Durable Good",
+      "name": "goods",
+      "removeButton": "Remove Good",
+      "values": [
+        {
+        "label" : "Name of Good",
+        "name": "name",
+        "errorMessage": "Enter a name for this good"
+        },
+        {
+          "label": "Where will this item be stored",
+          "sublabel": "This must be a location on Cornell's Campus",
+          "name": "location",
+          "errorMessage": "Please Enter a location"
+        },
+        {
+          "label": "Does the good have a life of more than 1 year",
+          "name": "life",
+          "type": "checkbox",
+          "defaultValue": false
+        },
+        {
+          "label": "Supporting Documentation",
+          "name": "supporting",
+          "type": "file",
+          "error": "Please Upload Supporting Documentation"
+        }
+      ]
+    }
   ],
 
   "single": [

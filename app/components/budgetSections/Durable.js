@@ -22,7 +22,6 @@ class Durable extends Component {
   renderField(field) {
     const {meta : {touched, error}} = field;
     var props = field.prop
-    console.log(props)
     const className = `form-group ${touched && error ? "has-danger" : ""} budgetField`;
     var mainClass;
     var labelClass;
@@ -39,15 +38,11 @@ class Durable extends Component {
           inputClass = 'col-sm-6'
           onChange = (e) => {
             e.preventDefault();
-            console.log(e)
-            console.log(e.target.files[0])
-            // TODO: DONT MAKE THIS SO DARN GENERAL
-            props.dispatch(change('durable', 'file', [...e.target.files]))
+            props.dispatch(change(durableJson.name, field.input.name, [...e.target.files]))
           }
-          inpLabDivClass = ''
+          inpLabDivClass = 'artificialFile'
           other={}
-          // TODO: MAKE THIS LOAD UP RIGHT
-          extraField=<Field name="file" component='input' type="hidden"/>
+          extraField=<Field name={field.input.name} component='input' type="hidden"/>
           break;
       case 'checkbox':
           mainClass = 'form-check'
@@ -72,7 +67,31 @@ class Durable extends Component {
     onChange={onChange}
     {...other}
     />
-    var label = <label className={labelClass}>{field.label}</label>
+    var label = <label className={labelClass} style={{minWidth: '50%'}}>{field.label}</label>
+
+    if (field.type=='file' && props.durable && props.durable.values && props.durable && props.durable.values) {
+      function extractValue(values, field_name) {
+        if(field_name.includes('[')) {
+          var objName = field_name.split('[')[0]
+          var index =  field_name.split('[')[1].split(']')[0]
+          var fieldName = field_name.split('.')[1]
+          return extractValue(values[objName][index], fieldName)
+        }
+        else {
+          return values[field_name]
+        }
+      }
+
+      var file = extractValue(props.durable.values, field.input.name)
+      if (file) {
+        inpLabDivClass = 'col-sm-12'
+        labelClass=''
+        input = <label className='col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px'}}><button onClick={(e)=>{e.preventDefault();console.log('CHANGE')}} style={{marginRight: '8px'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
+        label = <label className='col-form-label' style={{minWidth: '50%', marginBottom: '10px'}}><div style={{position: 'absolute', top: 2}}>{field.label}</div></label>
+      }
+    }
+
+
     var inpLab = field.type=='checkbox' ? <div className={inpLabDivClass}>{input}{label}</div> : <div className={inpLabDivClass}>{label}{input}</div>
     return(
       <div className={mainClass} style={{paddingTop: '10px', ...extraStyle}}>
@@ -106,7 +125,7 @@ class Durable extends Component {
     var onOpen = function(index) {
       return (function() {
         opened[index]=true
-        console.log('Op', opened)
+        // console.log('Op', opened)
 
       })
     }
@@ -114,31 +133,33 @@ class Durable extends Component {
     var onClose = function(index) {
       return (function() {
         opened[index]=false
-        console.log('Op', opened)
+        // console.log('Op', opened)
       })
     }
 
-    console.log('Opened', opened)
+    // console.log('Opened', opened)
 
     return(
       <div>
-      <button className='btn btn-secondary'type="button" onClick={onAdd}>Add Durable Good</button>
+      <button className='btn btn-secondary'type="button" onClick={onAdd}>{questions.addButton}</button>
       <div style={{paddingTop: '3%'}}>
         {
         fields.map((good,index) => {
           var triggerText = prop.durable.values && prop.durable.values.goods && prop.durable.values.goods[index] && prop.durable.values.goods[index].name!=undefined ? prop.durable.values.goods[index].name : `Durable Good ${index}`
         return(
-          <div key={index} className='collapser' style={{paddingBottom: '2%', position: 'relative'}}>
+          <div key={index} className='collapser' style={{paddingBottom: '15px', position: 'relative'}}>
           <Collapsible trigger={triggerText} open={opened[index]} onOpen={onOpen(index)} onClose={onClose(index)}>
-          <button className='btn btn-danger' onClick={onRemove(index)} style={{position: 'block', float: 'right', margin: '5px', marginTop: '5px'}}>Remove Good</button>
-          {questions.map(({label, name, type='text'}, index2) => {
+          <button className='btn btn-danger' onClick={onRemove(index)} style={{position: 'block', float: 'right', margin: '5px', marginTop: '5px'}}>{questions.removeButton}</button>
+          {questions.values.map(({label, name, type='text', defaultValue}, index2) => {
         return(
           <Field
             key={`${good}.${name}_${index2}`}
             label={label}
             name={`${good}.${name}`}
             type={type}
+            initialValues={defaultValue}
             prop={prop}
+            index={index}
             component={renderField}
           />
         )})}
@@ -163,8 +184,8 @@ class Durable extends Component {
 
       const repeated = durableJson.repeat ?
       durableJson.repeat.map((questions, index) => {
-        return (
-          <FieldArray name='goods' key={index} prop={this.props} opened={this.opened} init={this.init} renderField={this.renderField} questions={questions} component={this.renderGoods}/>
+         return (
+          <FieldArray name={questions.name} key={index} prop={this.props} opened={this.opened} init={this.init} renderField={this.renderField} questions={questions} component={this.renderGoods}/>
         )
         })
       : <div/>
@@ -215,7 +236,7 @@ function mapDispatchToProps(dispatch, ownProps) {
 
 export default reduxForm({
 	validate,
-	form: 'durable',
+	form: durableJson.name,
   destroyOnUnmount: false
 })(
 connect(mapStateToProps, mapDispatchToProps)(Durable)
