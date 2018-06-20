@@ -2,12 +2,12 @@ import {
   OPEN_COLLAPSE,
   CLOSE_COLLAPSE,
   ADD_COLLAPSE,
-  REMOVE_COLLAPSE} from '../actions'
+  REMOVE_COLLAPSE,
+  INIT} from '../actions'
 
-var initialState = {}
+var initialState = {init: false}
 
 function modify(array, value, index) {
-  console.log('MODIFY: ', array, value, index)
   return array.map((orig, ind) => {
     if(ind == index) {
       return value
@@ -18,7 +18,6 @@ function modify(array, value, index) {
 
 function insertItem(array, value) {
   var index = array.length
-  console.log('INSERT: ', array, value, index)
     return ([
         ...array.slice(0, index),
         value,
@@ -27,7 +26,6 @@ function insertItem(array, value) {
 }
 
 function removeItem(array, index) {
-  console.log('REMOVE: ', array, index)
     return [
         ...array.slice(0, index),
         ...array.slice(index + 1)
@@ -37,6 +35,8 @@ function removeItem(array, index) {
 export default function(state=initialState, action) {
   // console.log('reduce: ', action)
 	switch(action.type) {
+  case INIT:
+    return {...state, init: true}
   case ADD_COLLAPSE:
     var temp = {}
     if(!state[`${action.payload.form}_${action.payload.field}`]) {

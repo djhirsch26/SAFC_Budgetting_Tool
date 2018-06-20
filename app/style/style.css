@@ -151,7 +151,7 @@ body {
   float: right;
   margin-right: 10px;
   /* display: block; */
-  transition: transform 600ms;
+  transition: transform 300ms;
 }
 
 .collapser .Collapsible__trigger.is-open::after {

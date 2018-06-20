@@ -7,6 +7,9 @@ import { Link } from 'react-router-dom'
 import Collapsible from 'react-collapsible';
 import validate from '../validate'
 
+import {openCollapse, closeCollapse, addCollapse, removeCollapse, init} from '../../actions'
+
+
 const isEmpty = function(obj) {
     for(var key in obj) {
         if(obj.hasOwnProperty(key))
@@ -31,15 +34,15 @@ class FormGenerator extends Component {
 
   constructor(props) {
     super(props)
-    this.init = false
   }
 
   renderField(field) {
-    const {meta : {touched, error, dispatch}, values, jsonFile} = field;
+    const {meta : {touched, error, dispatch}, values, jsonFile, thisVar} = field;
     const className = `form-group ${touched && error ? "has-danger" : ""} budgetField`;
     var mainClass;
     var labelClass;
     var inputClass;
+    var extraRef = {};
     var extraStyle = {}
     var onChange = ()=>{}
     var inpLabDivClass = ''
@@ -75,26 +78,34 @@ class FormGenerator extends Component {
           break;
     }
     var input = <input
-    id = 'input'
+    id = {`input_${jsonFile.name}_${field.input.name}`}
     className= {inputClass}
     type={field.type}
     onChange={onChange}
+    hidden={field.type=='file' && values && values.values && extractValue(values.values, field.input.name)}
+    ref={(e) =>{thisVar[`${jsonFile.name}_${field.input.name}_ref`] = e}}
     {...other}
     />
     var label = <label className={labelClass} style={{minWidth: '50%'}}>{field.label}</label>
+
+    var inpLab = field.type=='checkbox' ? <div className={inpLabDivClass}>{input}{label}</div> : <div className={inpLabDivClass}>{label}{input}</div>
+
 
     if (field.type=='file' && values && values.values) {
       var file = extractValue(values.values, field.input.name)
       if (file) {
         inpLabDivClass = 'col-sm-12'
         labelClass=''
-        input = <label className='col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px'}}><button onClick={(e)=>{e.preventDefault();console.log('CHANGE')}} style={{marginRight: '8px'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
+        var changeFile = () => {console.log(thisVar[`${jsonFile.name}_${field.input.name}_ref`]); thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
+        changeFile=changeFile.bind(thisVar)
+        console.log(thisVar[`${jsonFile.name}_${field.input.name}_ref`], changeFile)
+        var input2 = <label className='col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px'}}><button onClick={(e)=>{console.log('CHANGE'); changeFile()}} style={{marginRight: '8px'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
         label = <label className='col-form-label' style={{minWidth: '50%', marginBottom: '10px'}}><div style={{position: 'absolute', top: 2}}>{field.label}</div></label>
+        inpLab = <div className={inpLabDivClass}>{label}{input}{input2}</div>
       }
     }
 
 
-    var inpLab = field.type=='checkbox' ? <div className={inpLabDivClass}>{input}{label}</div> : <div className={inpLabDivClass}>{label}{input}</div>
     return(
       <div className={mainClass} style={{paddingTop: '10px', ...extraStyle}}>
         {inpLab}
@@ -107,7 +118,7 @@ class FormGenerator extends Component {
   }
 
   renderGoods(goods) {
-    var {fields, jsonFile, add, remove, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
+    var {fields, jsonFile, thisVar, add, remove, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
     if(!init && fields.length==0 && opened!=undefined) {
       fields.push({})
       add(jsonFile.name, goods.fields.name, fields.length, init)
@@ -139,6 +150,8 @@ class FormGenerator extends Component {
         remove(jsonFile.name, goods.fields.name, index)
       })
     }
+
+    console.log('HERE0', values)
     return(
       <div>
       <button className='btn btn-secondary'type="button" onClick={onAdd}>{questions.addButton}</button>
@@ -148,7 +161,7 @@ class FormGenerator extends Component {
           var triggerText = values && values.values && values.values.goods && values.values.goods[index] && values.values.goods[index].name!=undefined ? values.values.goods[index].name : `Durable Good ${index}`
         return(
           <div key={index} className='collapser' style={{paddingBottom: '15px', position: 'relative'}}>
-          <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={((index) => {opened[`${jsonFile.name}_${goods.fields.name}`][index] ? onClose(index)() : onOpen(index)()})}  open={opened[`${jsonFile.name}_${goods.fields.name}`][index]} onOpen={onOpen(index)} onClose={onClose(index)}>
+          <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={((index) => {opened[`${jsonFile.name}_${goods.fields.name}`][index] ? onClose(index)() : onOpen(index)()})}  open={opened[`${jsonFile.name}_${goods.fields.name}`][index]} >
           <button className='btn btn-danger' onClick={onRemove(index)} style={{position: 'block', float: 'right', margin: '5px', marginTop: '5px'}}>{questions.removeButton}</button>
           {questions.values.map(({label, name, type='text', defaultValue}, index2) => {
         return(
@@ -157,6 +170,7 @@ class FormGenerator extends Component {
             label={label}
             name={`${good}.${name}`}
             type={type}
+            thisVar={thisVar}
             jsonFile={jsonFile}
             dispatch={dispatch}
             values={values}
@@ -173,6 +187,10 @@ class FormGenerator extends Component {
     )
   }
 
+  componentDidMount() {
+    this.props.init()
+  }
+
   render() {
       const jsonFile = this.props.json
       const repeated = jsonFile.repeat ?
@@ -183,21 +201,20 @@ class FormGenerator extends Component {
           jsonFile={jsonFile}
           dispatch={this.props.dispatch}
           key={index}
-          values={this.props.values}
+          values={this.props.durable}
           opened={this.props.opened}
-          init={this.init}
+          init={this.props.opened.init}
           renderField={this.renderField}
           questions={questions}
-          open={this.props.onOpen}
-          close={this.props.onClose}
-          add={this.props.onAdd}
-          remove={this.props.onRemove}
+          open={this.props.openCollapse}
+          close={this.props.closeCollapse}
+          add={this.props.addCollapse}
+          remove={this.props.removeCollapse}
+          thisVar={this}
           component={this.renderGoods}/>
         )
         })
       : <div/>
-
-      this.init=true
 
       const fields = jsonFile.single ?
       <div className='singleFields'>
@@ -210,7 +227,8 @@ class FormGenerator extends Component {
             type={type}
             jsonFile={jsonFile}
             dispatch={this.props.dispatch}
-            values={this.props.values}
+            values={this.props.durable}
+            thisVar={this}
       			component={this.renderField}
       		/>
         )})} </div> : <div/>
@@ -228,5 +246,21 @@ class FormGenerator extends Component {
   	}
 }
 
+function mapStateToProps(state) {
+  return {
+    durable: state.form.durable,
+    opened: state.opener
+  };
+}
 
-export default FormGenerator
+function mapDispatchToProps(dispatch, ownProps) {
+  return bindActionCreators({
+    openCollapse,
+    closeCollapse,
+    addCollapse,
+    removeCollapse,
+    init
+}, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(FormGenerator)
