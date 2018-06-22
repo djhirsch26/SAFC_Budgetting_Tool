@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import {connect} from 'react-redux';
-import { Field, FieldArray, reduxForm, change} from 'redux-form';
+import { Field, FieldArray, reduxForm, change, initialize} from 'redux-form';
 import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
@@ -14,15 +14,13 @@ import validate from '../validate'
 
 class Durable extends Component {
 
-  constructor(props) {
-    super(props)
-    this.init = false
-    this.opened = []
-  }
-
   onSubmit(values) {
     console.log(values)
   }
+
+  // componentWillMount() {
+  //   this.props.initalize({goods: [{name: "HI"}]})
+  // }
 
   render() {
       const {handleSubmit} = this.props;
@@ -39,10 +37,14 @@ class Durable extends Component {
   	}
   }
 
-export default reduxForm({
+export default connect(
+  (state) => ({
+  }),
+  {}
+)(reduxForm({
 	validate,
 	form: durableJson.name,
   destroyOnUnmount: false
 })(
 Durable
-);
+));

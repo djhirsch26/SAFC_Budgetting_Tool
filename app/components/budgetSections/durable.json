@@ -1,5 +1,6 @@
 {
   "name": "durable",
+  "title": "Durable Goods",
   "repeat": [
     {
       "addButton": "Add Durable Good",
@@ -10,7 +11,8 @@
         {
         "label" : "Name of Good",
         "name": "name",
-        "errorMessage": "Enter a name for this good"
+        "errorMessage": "Enter a name for this good",
+        "defaultValue": "HI"
         },
         {
           "label": "Where will this item be stored",
@@ -22,13 +24,14 @@
           "label": "Does the good have a life of more than 1 year",
           "name": "life",
           "type": "checkbox",
-          "defaultValue": false
+          "defaultValue": "checked",
+          "errorMessage": "Good must have a life of at least 1 year"
         },
         {
           "label": "Supporting Documentation",
           "name": "supporting",
           "type": "file",
-          "error": "Please Upload Supporting Documentation"
+          "errorMessage": "Please Upload Supporting Documentation"
         }
       ]
     }

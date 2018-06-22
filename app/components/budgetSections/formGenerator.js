@@ -38,7 +38,7 @@ class FormGenerator extends Component {
 
   renderField(field) {
     const {meta : {touched, error, dispatch}, values, jsonFile, thisVar} = field;
-    const className = `form-group ${touched && error ? "has-danger" : ""} budgetField`;
+    const classNhame = `form-group budgetField ${touched && error ? "has-danger" : ""}`;
     var mainClass;
     var labelClass;
     var inputClass;
@@ -58,7 +58,7 @@ class FormGenerator extends Component {
             dispatch(change(jsonFile.name, field.input.name, [...e.target.files]))
           }
           inpLabDivClass = 'artificialFile'
-          other={}
+          other={checked: field.input.value}
           extraField=<Field name={field.input.name} component='input' type="hidden"/>
           break;
       case 'checkbox':
@@ -86,7 +86,7 @@ class FormGenerator extends Component {
     ref={(e) =>{thisVar[`${jsonFile.name}_${field.input.name}_ref`] = e}}
     {...other}
     />
-    var label = <label className={labelClass} style={{minWidth: '50%'}}>{field.label}</label>
+    var label = <label className={labelClass} style={{minWidth: '50%', padding: 0}}>{field.label}</label>
 
     var inpLab = field.type=='checkbox' ? <div className={inpLabDivClass}>{input}{label}</div> : <div className={inpLabDivClass}>{label}{input}</div>
 
@@ -96,21 +96,22 @@ class FormGenerator extends Component {
       if (file) {
         inpLabDivClass = 'col-sm-12'
         labelClass=''
-        var changeFile = () => {console.log(thisVar[`${jsonFile.name}_${field.input.name}_ref`]); thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
+        var changeFile = () => {thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
         changeFile=changeFile.bind(thisVar)
-        console.log(thisVar[`${jsonFile.name}_${field.input.name}_ref`], changeFile)
         var input2 = <label className='col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px'}}><button onClick={(e)=>{console.log('CHANGE'); changeFile()}} style={{marginRight: '8px'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
         label = <label className='col-form-label' style={{minWidth: '50%', marginBottom: '10px'}}><div style={{position: 'absolute', top: 2}}>{field.label}</div></label>
-        inpLab = <div className={inpLabDivClass}>{label}{input}{input2}</div>
+        inpLab = <div className={inpLabDivClass} style={{padding: 0}}>{label}{input}{input2}</div>
       }
     }
 
 
     return(
-      <div className={mainClass} style={{paddingTop: '10px', ...extraStyle}}>
-        {inpLab}
-        {extraField}
-        <div className="text-help">
+      <div style={{paddingTop: '10px', marginBottom: '15px'}}>
+        <div className={mainClass} style={{margin: 0, ...extraStyle}}>
+          {inpLab}
+          {extraField}
+        </div>
+        <div style={{color: 'red'}}>
         {touched ? error : ""}
         </div>
       </div>
@@ -119,8 +120,12 @@ class FormGenerator extends Component {
 
   renderGoods(goods) {
     var {fields, jsonFile, thisVar, add, remove, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
+
     if(!init && fields.length==0 && opened!=undefined) {
       fields.push({})
+      add(jsonFile.name, goods.fields.name, fields.length, init)
+    }
+    else if(!init) {
       add(jsonFile.name, goods.fields.name, fields.length, init)
     }
 
@@ -151,19 +156,28 @@ class FormGenerator extends Component {
       })
     }
 
-    console.log('HERE0', values)
+    var onTriggerClick = function(index) {
+      if(opened[`${jsonFile.name}_${goods.fields.name}`]) {
+        if(opened[`${jsonFile.name}_${goods.fields.name}`][index]) {
+          onClose(index)()
+        }
+        else {
+          onOpen(index)()
+        }
+      }
+    }
+
     return(
       <div>
-      <button className='btn btn-secondary'type="button" onClick={onAdd}>{questions.addButton}</button>
-      <div style={{paddingTop: '3%'}}>
+      <div style={{paddingBottom: '3%'}}>
         {
         fields.map((good,index) => {
           var triggerText = values && values.values && values.values.goods && values.values.goods[index] && values.values.goods[index].name!=undefined ? values.values.goods[index].name : `Durable Good ${index}`
         return(
           <div key={index} className='collapser' style={{paddingBottom: '15px', position: 'relative'}}>
-          <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={((index) => {opened[`${jsonFile.name}_${goods.fields.name}`][index] ? onClose(index)() : onOpen(index)()})}  open={opened[`${jsonFile.name}_${goods.fields.name}`][index]} >
+          <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={onTriggerClick}  open={opened[`${jsonFile.name}_${goods.fields.name}`] ? opened[`${jsonFile.name}_${goods.fields.name}`][index] : true} >
           <button className='btn btn-danger' onClick={onRemove(index)} style={{position: 'block', float: 'right', margin: '5px', marginTop: '5px'}}>{questions.removeButton}</button>
-          {questions.values.map(({label, name, type='text', defaultValue}, index2) => {
+          {questions.values.map(({label, name, type='text', defaultValue=''}, index2) => {
         return(
           <Field
             key={`${good}.${name}_${index2}`}
@@ -182,6 +196,7 @@ class FormGenerator extends Component {
         </div>
       )})
       }
+      <div style={{overflow: 'hidden'}}><button className='btn btn-secondary' type="button" style={{float: 'right'}} onClick={onAdd}>{questions.addButton}</button></div>
           </div>
       </div>
     )
@@ -235,7 +250,8 @@ class FormGenerator extends Component {
 
   		return(
       <div>
-        <div style={{width: '98%', paddingLeft: '3%', paddingTop: '3%'}}>
+        <div style={{width: '98%', paddingLeft: '3%', paddingTop: '1%'}}>
+        <h2 className='text-center' style={{backgroundColor: '#FFFFFF', marginBottom:'3%', color: '#404040'}}> {jsonFile.title} </h2>
           {repeated}
           {fields}
   			  <button type="submit" className="btn btn-primary">Add to Budget</button>
@@ -249,7 +265,7 @@ class FormGenerator extends Component {
 function mapStateToProps(state) {
   return {
     durable: state.form.durable,
-    opened: state.opener
+    opened: state.opener,
   };
 }
 
