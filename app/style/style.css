@@ -130,6 +130,19 @@ body {
   margin-bottom: 15px;
 }
 
+.lower-page {
+  width: 98%;
+  padding-left: 3%;
+  padding-top: 1%;
+}
+
+.page-title {
+  background-color: #FFFFFF;
+  opacity: .9;
+  margin-bottom:'3%';
+  color: #404040;
+}
+
 .artificialFile {
   width: 100%;
   /* display: inline-block; */

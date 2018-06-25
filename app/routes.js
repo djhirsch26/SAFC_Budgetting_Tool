@@ -5,6 +5,9 @@ import App from './containers/App';
 import Home from './components/Home';
 import Topbar from './components/Topbar'
 import Durable from './components/budgetSections/Durable'
+import Travel from './components/budgetSections/Travel'
+
+import {commonGoods} from './components/lists'
 
 // import CounterPage from './containers/CounterPage';
 import { DURABLE } from './constants'
@@ -16,6 +19,8 @@ export default () => (
     <Topbar/>
     <div className="lowerBlock">
     <Switch>
+      <Route path="/durable/common" component={commonGoods} />
+      <Route path="/travel" component={Travel} />
       <Route path="/durable" component={Durable} />
       <Route path="/" component={Home} />
     </Switch>

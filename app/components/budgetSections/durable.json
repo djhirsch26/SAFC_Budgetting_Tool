@@ -44,5 +44,12 @@
       "type": "file",
       "errorMessage": "Please Upload the Last 3 Years of Durable Goods "
     }
+  ],
+
+  "links": [
+    {
+      "label": "Commonly Accepted Durable Goods",
+      "link": "durable/common"
+    }
   ]
 }

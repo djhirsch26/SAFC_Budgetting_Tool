@@ -1,0 +1,25 @@
+{
+  "name": "travel",
+  "Title": "Travel Events",
+  "repeat": [
+    {
+      "addButton": "Add Travel Event",
+      "defaultTriggerText": "Travel Event",
+      "name": "travelEvents",
+      "removeButton": "Remove Event",
+      "values": [
+      {
+        "label" : "Name of Event",
+        "name": "name",
+        "errorMessage": "Enter a name for this event"
+      },
+      {
+        "label" : "Does the Event occur within the dates of the semester",
+        "name": "dates",
+        "type": "checkbox",
+        "errorMessage": "Event must occur during semester"
+      }
+      ]
+    }
+  ]
+}

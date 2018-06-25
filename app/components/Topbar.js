@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom'
 
-import {DURABLE} from '../constants'
+import {
+  DURABLE,
+  TRAVEL
+} from '../constants'
 
 import LinkButton from './LinkButton'
 
@@ -14,7 +17,7 @@ export default class Topbar extends Component {
       <div className='buttons'>
         <div className='topButton'><LinkButton className='topLinkButton' text='Home' link={`/`}/></div>
         <div className='topButton'><LinkButton className='topLinkButton' text='Durable' link={`/${DURABLE}`}/></div>
-        <div className='topButton'><LinkButton className='topLinkButton' text='Home' link={`/`}/></div>
+        <div className='topButton'><LinkButton className='topLinkButton' text='Travel' link={`/${TRAVEL}`}/></div>
         <div className='topButton'><LinkButton className='topLinkButton' text='Home' link={`/`}/></div>
       </div>
       </div>

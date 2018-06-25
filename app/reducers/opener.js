@@ -5,7 +5,7 @@ import {
   REMOVE_COLLAPSE,
   INIT} from '../actions'
 
-var initialState = {init: false}
+var initialState = {init: {}}
 
 function modify(array, value, index) {
   return array.map((orig, ind) => {
@@ -36,7 +36,11 @@ export default function(state=initialState, action) {
   // console.log('reduce: ', action)
 	switch(action.type) {
   case INIT:
-    return {...state, init: true}
+    var temp = Object.assign({}, state.init)
+    if (!temp[action.payload.field]) {
+      temp[action.payload.field] = true
+    }
+    return {...state, init: temp}
   case ADD_COLLAPSE:
     var temp = {}
     if(!state[`${action.payload.form}_${action.payload.field}`]) {

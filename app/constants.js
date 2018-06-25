@@ -1,4 +1,5 @@
 export const DURABLE = 'durable'
+export const TRAVEL = 'travel'
 
 
 // BUDGET NUMBERS

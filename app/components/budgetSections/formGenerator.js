@@ -5,7 +5,8 @@ import { Field, FieldArray, reduxForm, change} from 'redux-form';
 import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
-import validate from '../validate'
+import validate from '../validate';
+import ListGenerator from '../ListGenerator.js'
 
 import {openCollapse, closeCollapse, addCollapse, removeCollapse, init} from '../../actions'
 
@@ -98,7 +99,7 @@ class FormGenerator extends Component {
         labelClass=''
         var changeFile = () => {thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
         changeFile=changeFile.bind(thisVar)
-        var input2 = <label className='col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px'}}><button onClick={(e)=>{console.log('CHANGE'); changeFile()}} style={{marginRight: '8px'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
+        var input2 = <label className='col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
         label = <label className='col-form-label' style={{minWidth: '50%', marginBottom: '10px'}}><div style={{position: 'absolute', top: 2}}>{field.label}</div></label>
         inpLab = <div className={inpLabDivClass} style={{padding: 0}}>{label}{input}{input2}</div>
       }
@@ -121,7 +122,7 @@ class FormGenerator extends Component {
   renderGoods(goods) {
     var {fields, jsonFile, thisVar, add, remove, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
 
-    if(!init && fields.length==0 && opened!=undefined) {
+    if(!init[jsonFile.name] && fields.length==0 && opened!=undefined) {
       fields.push({})
       add(jsonFile.name, goods.fields.name, fields.length, init)
     }
@@ -172,7 +173,7 @@ class FormGenerator extends Component {
       <div style={{paddingBottom: '3%'}}>
         {
         fields.map((good,index) => {
-          var triggerText = values && values.values && values.values.goods && values.values.goods[index] && values.values.goods[index].name!=undefined ? values.values.goods[index].name : `Durable Good ${index}`
+          var triggerText = values && values.values && values.values[fields.name] && values.values[fields.name][index] && values.values[fields.name][index].name!=undefined ? values.values[fields.name][index].name : `${questions.defaultTriggerText} ${index}`
         return(
           <div key={index} className='collapser' style={{paddingBottom: '15px', position: 'relative'}}>
           <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={onTriggerClick}  open={opened[`${jsonFile.name}_${goods.fields.name}`] ? opened[`${jsonFile.name}_${goods.fields.name}`][index] : true} >
@@ -203,7 +204,7 @@ class FormGenerator extends Component {
   }
 
   componentDidMount() {
-    this.props.init()
+    this.props.init(this.props.json.name)
   }
 
   render() {
@@ -216,7 +217,7 @@ class FormGenerator extends Component {
           jsonFile={jsonFile}
           dispatch={this.props.dispatch}
           key={index}
-          values={this.props.durable}
+          values={this.props.budget[jsonFile.name]}
           opened={this.props.opened}
           init={this.props.opened.init}
           renderField={this.renderField}
@@ -242,20 +243,34 @@ class FormGenerator extends Component {
             type={type}
             jsonFile={jsonFile}
             dispatch={this.props.dispatch}
-            values={this.props.durable}
+            values={this.props.section}
             thisVar={this}
       			component={this.renderField}
       		/>
         )})} </div> : <div/>
 
+        var links = <div/>
+        if(jsonFile.links) {
+          links =
+          <div style={{marginTop: '10px', marginBottom: '5px'}}>
+          <h5 style={{textAlign: 'center'}}> Useful Links </h5>
+          {jsonFile.links.map(({label, link}) => {
+            return (
+              <div key={label}><Link className='btn btn-secondary btn-link btn-block' to={link}>{label}</Link></div>
+            )
+          })}
+          </div>
+        }
+
   		return(
       <div>
-        <div style={{width: '98%', paddingLeft: '3%', paddingTop: '1%'}}>
-        <h2 className='text-center' style={{backgroundColor: '#FFFFFF', marginBottom:'3%', color: '#404040'}}> {jsonFile.title} </h2>
+        <div className='lower-page'>
+        <h2 className='page-title text-center'> {jsonFile.title} </h2>
           {repeated}
           {fields}
   			  <button type="submit" className="btn btn-primary">Add to Budget</button>
   			  <Link to="/" className="btn btn-danger">Cancel</Link>
+          {links}
         </div>
       </div>
   		);
@@ -264,7 +279,7 @@ class FormGenerator extends Component {
 
 function mapStateToProps(state) {
   return {
-    durable: state.form.durable,
+    budget: state.form,
     opened: state.opener,
   };
 }

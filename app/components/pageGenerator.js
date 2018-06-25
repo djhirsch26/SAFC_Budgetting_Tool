@@ -9,10 +9,9 @@ import Collapsible from 'react-collapsible';
 var durableJson = require('./durable.json');
 import FormGenerator from './formGenerator'
 
-import {validationCreator} from '../validate'
+import validate from '../validate'
 
-
-class Durable extends Component {
+class Page extends Component {
 
   onSubmit(values) {
     console.log(values)
@@ -32,8 +31,6 @@ class Durable extends Component {
   	}
   }
 
-  const validate = validationCreator(durableJson)
-
 export default connect(
   (state) => ({
   }),
@@ -43,5 +40,5 @@ export default connect(
 	form: durableJson.name,
   destroyOnUnmount: false
 })(
-Durable
+Page
 ));

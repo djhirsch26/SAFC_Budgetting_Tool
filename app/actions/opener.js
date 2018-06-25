@@ -11,10 +11,10 @@ export function addCollapse(formName, fieldName, index, isInit=true) {
   }
 }
 
-export function init() {
+export function init(field) {
   return {
     type: INIT,
-    payload: {}
+    payload: {field}
   }
 }
 
