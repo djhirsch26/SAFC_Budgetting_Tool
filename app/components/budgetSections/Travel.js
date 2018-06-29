@@ -6,7 +6,11 @@ import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
 
-var jsonFile = require('./travel.json');
+import {
+  addTravel
+} from '../../actions'
+
+import {travel as jsonFile} from './travelConfig'
 import FormGenerator from './formGenerator'
 
 import {validationCreator} from '../validate'
@@ -16,6 +20,8 @@ class Travel extends Component {
 
   onSubmit(values) {
     console.log("TRAVEL",values)
+    console.log(this.props.addTravel)
+    this.props.addTravel(values)
   }
 
   render() {
@@ -34,10 +40,20 @@ class Travel extends Component {
 
   const validate = validationCreator(jsonFile)
 
+  function mapStateToProps(state) {
+  return {
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators({
+    addTravel
+  }, dispatch);
+}
+
 export default connect(
-  (state) => ({
-  }),
-  {}
+  mapStateToProps,
+  mapDispatchToProps
 )(reduxForm({
 	validate,
 	form: jsonFile.name,

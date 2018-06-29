@@ -31,6 +31,21 @@ const extractValue = function(values, field_name) {
   }
 }
 
+//goods[0].hobbies[2].max_funding
+const constructName = function(inputField, givenName) {
+  if(inputField.includes('[')) {
+    var inputLevels = inputField.split('.')
+    var name = ''
+    inputLevels.forEach((level, index) => {
+      if (index<inputLevels.length-1) {
+        name+=level + '.'
+      }
+    })
+    return name+givenName
+  }
+  return givenName
+}
+
 class FormGenerator extends Component {
 
   constructor(props) {
@@ -38,14 +53,14 @@ class FormGenerator extends Component {
   }
 
   renderField(field) {
-    const {meta : {touched, error, dispatch}, values, jsonFile, thisVar} = field;
+    const {meta : {touched, error, dispatch}, values, index, jsonFile, thisVar} = field;
     const classNhame = `form-group budgetField ${touched && error ? "has-danger" : ""}`;
     var mainClass;
     var labelClass;
     var inputClass;
     var extraRef = {};
     var extraStyle = {}
-    var onChange = ()=>{}
+    var onChange = field.input.onChange
     var inpLabDivClass = ''
     var other = field.input
     var extraField = <div/>
@@ -67,10 +82,19 @@ class FormGenerator extends Component {
           labelClass = 'form-check-label'
           inputClass = 'form-check-input'
           break;
+      case 'calculated':
+          mainClass = 'form-group'
+          labelClass = ''
+          inputClass = 'form-control'
+          var value = values && values.values && extractValue(values.values, field.input.name) ? extractValue(values.values, field.input.name) : 0
+          value = field.display(value)
+          other = {...other, disabled: true, value: value }
+          break;
       case 'text':
           mainClass = 'form-group'
           labelClass = ''
           inputClass = 'form-control'
+          other = {...other}
           break;
       default:
           mainClass = 'form-group'
@@ -78,14 +102,29 @@ class FormGenerator extends Component {
           inputClass = 'form-control'
           break;
     }
+
+    //TODO: GET TO USE MOST RECENT VALUE
+
+    if (field.calculate) {
+      var calculate = field.calculate
+      onChange = (e) => {
+        field.input.onChange(e)
+        console.log(e.target.value)
+        var name = constructName(field.input.name, calculate.name)
+        dispatch(change(jsonFile.name, name, calculate.function(e.target.value, values.values ? values.values : {}, index)))
+      }
+    }
+
+
     var input = <input
     id = {`input_${jsonFile.name}_${field.input.name}`}
     className= {inputClass}
     type={field.type}
-    onChange={onChange}
     hidden={field.type=='file' && values && values.values && extractValue(values.values, field.input.name)}
     ref={(e) =>{thisVar[`${jsonFile.name}_${field.input.name}_ref`] = e}}
     {...other}
+    onChange={onChange}
+
     />
     var label = <label className={labelClass} style={{minWidth: '50%', padding: 0}}>{field.label}</label>
 
@@ -178,7 +217,15 @@ class FormGenerator extends Component {
           <div key={index} className='collapser' style={{paddingBottom: '15px', position: 'relative'}}>
           <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={onTriggerClick}  open={opened[`${jsonFile.name}_${goods.fields.name}`] ? opened[`${jsonFile.name}_${goods.fields.name}`][index] : true} >
           <button className='btn btn-danger' onClick={onRemove(index)} style={{position: 'block', float: 'right', margin: '5px', marginTop: '5px'}}>{questions.removeButton}</button>
-          {questions.values.map(({label, name, type='text', defaultValue=''}, index2) => {
+          {questions.values.map((
+            {label,
+            name,
+            normalize,
+            type='text',
+            defaultValue='',
+            calculate,
+            display,
+          }, index2) => {
         return(
           <Field
             key={`${good}.${name}_${index2}`}
@@ -188,6 +235,9 @@ class FormGenerator extends Component {
             thisVar={thisVar}
             jsonFile={jsonFile}
             dispatch={dispatch}
+            display={display}
+            calculate={calculate}
+            normalize={normalize}
             values={values}
             index={index}
             component={renderField}
@@ -232,7 +282,7 @@ class FormGenerator extends Component {
         })
       : <div/>
 
-      const fields = jsonFile.single ?
+      const fields = jsonFile.single && jsonFile.single.length!=0 ?
       <div className='singleFields'>
       {jsonFile.single.map(({label, name, type='text'}, index2) => {
         return(

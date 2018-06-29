@@ -6,7 +6,12 @@ import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
 
-var durableJson = require('./durable.json');
+import {
+  addDurable
+} from '../../actions'
+
+import {durable} from './durableConfig'
+
 import FormGenerator from './formGenerator'
 
 import {validationCreator} from '../validate'
@@ -15,7 +20,8 @@ import {validationCreator} from '../validate'
 class Durable extends Component {
 
   onSubmit(values) {
-    console.log(values)
+    console.log('DURABLE', values)
+    this.props.addDurable(values)
   }
 
   render() {
@@ -24,7 +30,7 @@ class Durable extends Component {
       <div>
       <form onSubmit={handleSubmit(this.onSubmit.bind(this))}>
   	   <FormGenerator
-       json={durableJson}
+       json={durable}
        />
       </form>
       </div>
@@ -32,15 +38,15 @@ class Durable extends Component {
   	}
   }
 
-  const validate = validationCreator(durableJson)
+  const validate = validationCreator(durable)
 
 export default connect(
   (state) => ({
   }),
-  {}
+  {addDurable}
 )(reduxForm({
 	validate,
-	form: durableJson.name,
+	form: durable.name,
   destroyOnUnmount: false
 })(
 Durable
