@@ -20,8 +20,10 @@ export function init(field) {
 }
 
 export function repeatErrors(errors) {
-  return: UDPATE_ERRORS,
-  payload: {errors}
+  return{
+    type: UDPATE_ERRORS,
+    payload: {errors}
+  }
 }
 
 export function removeCollapse(formName, fieldName, index) {
