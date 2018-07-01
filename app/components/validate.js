@@ -22,7 +22,9 @@ export function validationCreator(jsonFile) {
                     if(!errors[name][index]) {
                       errors[name][index]={}
                     }
-                    errors[name][index][fieldName]=qField.errorMessage ? qField.errorMessage : ""
+                    if (qField.errorMessage) {
+                      errors[name][index][fieldName]=qField.errorMessage
+                    }
                   }
                 })
               })
@@ -38,7 +40,6 @@ export function validationCreator(jsonFile) {
           }
         })
       }
-
 
     	//if errors is empty, form is fine to submit
     	return errors;

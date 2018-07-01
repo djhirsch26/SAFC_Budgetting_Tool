@@ -8,14 +8,23 @@ class ListGenerator extends Component {
     super(props)
   }
 
-  renderList({list, title}, depth) {
+  renderList({list, title, type}, depth, defaultType='bullet') {
     switch(depth) {
 
       case 0:
+        var type_ = type ? type : defaultType
         list = list.map(listItem => {
-          listItem = typeof listItem == "object" ? <div key={`${listItem.title}_depth`}> {this.renderList(listItem, depth+1)} </div> : <li key={`${listItem}_depth`}> {listItem} </li>
+          if (typeof listItem == "object") {
+            listItem = <div key={`${listItem.title}_depth`}> {this.renderList(listItem, depth+1, type_)} </div>
+          }
+          else {
+            listItem = <li key={`${listItem}_depth`}> {listItem} </li>
+          }
           return listItem
         })
+
+
+
         return (
           <div style={{marginBottom: '15px'}}>
             <div className='page-title text-center' style={{marginBottom: '20px'}}>
@@ -26,11 +35,25 @@ class ListGenerator extends Component {
             {list}
           </div>
         )
+        break;
       case 1:
+        var type = type ? type : defaultType
         list = list.map((listItem, index) => {
-          listItem = typeof listItem == "object" ? <div key={`${listItem.title}_depth`}> <li>{listItem.title}</li> <ol style={{marginBottom: 0}}>{this.renderList(listItem, depth+1)}</ol> </div> : <li key={`${listItem}_depth`}> {listItem} </li>
+          if (typeof listItem == "object") {
+            var nextType = listItem.type ? listItem.type : type
+            var list_ = type && type=='numeric' ? <ol style={{marginBottom: 0}}>{this.renderList(listItem, depth+1, nextType)}</ol> : <ul style={{marginBottom: 0}}>{this.renderList(listItem, depth+1)}</ul>
+            listItem = <div key={`${listItem.title}_depth`}> <li>{listItem.title}</li> {list_} </div>
+          }
+          else {
+            listItem = <li key={`${listItem}_depth`}> {listItem} </li>
+          }
           return listItem
         })
+
+
+        // Render Depth 0
+        list = type && type=='numeric' ? <ol>{list}</ol> : <ul>{list}</ul>
+
         return (
           <div style={{marginBottom: '15px'}}>
             <div className='page-title text-center' style={{marginBottom: '2px'}}>
@@ -38,16 +61,31 @@ class ListGenerator extends Component {
               {title ? title : 'Enter Title'}
               </h4>
             </div>
-            <ol>{list}</ol>
+            {list}
           </div>
         )
+        break;
       default:
+        var type = type ? type : defaultType
         list = list.map(listItem => {
-          listItem = typeof listItem == "object" ? <div key={`${listItem.title}_depth`}> <li>{listItem.title}</li> <ol key={`${listItem.title}_depth`} style={{marginBottom: 0}}>{this.renderList(listItem, depth+1)}</ol> </div> : <li key={`${listItem}_depth`}> {listItem} </li>
+          if (typeof listItem == "object" ) {
+            var nextType = listItem.type ? listItem.type : type
+            var list_ = type && type=='numeric' ? <ol key={`${listItem.title}_depth`} style={{marginBottom: 0}}>{this.renderList(listItem, depth+1, nextType)}</ol> : <ul key={`${listItem.title}_depth`} style={{marginBottom: 0}}>{this.renderList(listItem, depth+1)}</ul>
+            listItem = <div key={`${listItem.title}_depth`}> <li>{listItem.title}</li> {list_} </div>
+          }
+          else {
+            listItem = <li key={`${listItem}_depth`}> {listItem} </li>
+          }
           return listItem
         })
+
+        list = type && type=='numeric' ? <ol>{list}</ol> : <ul>{list}</ul>
+        // If this is the first part of a list, we may want a title. Make one if it is present
+        var optionalTitle = this.props.depth && depth==this.props.depth && title && title!='' ? <div>{title}</div> : <div/>
+
         return (
         <div>
+          {optionalTitle}
           {list}
         </div>
       )
@@ -55,9 +93,12 @@ class ListGenerator extends Component {
   }
 
   render() {
+
+    var depth = this.props.depth ? this.props.depth : 0
+    var className = this.props.depth && this.props.depth >= 2 ? '' : 'lower-page'
     return (
-      <div className='lower-page'>
-        {this.renderList(this.props.list, 0)}
+      <div className={className}>
+        {this.renderList(this.props.list, depth, this.props.list.type)}
       </div>
     );
   }

@@ -1,9 +1,10 @@
+
+
 export const numeric = function(value, previousValue=0) {
-  // console.log(value,previousValue,allValues)
-  if(!isNaN(value) && value>=0) {
-    return parseInt(value)
+  if(!isNaN(value) && parseFloat(value)>=0 && value!='') {
+    return value
   }
-  return previousValue
+  return value=='' ? value : previousValue
 }
 
 export const monetary = function(value) {

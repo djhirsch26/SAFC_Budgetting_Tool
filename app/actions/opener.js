@@ -3,6 +3,7 @@ export const CLOSE_COLLAPSE = 'close-collapse'
 export const ADD_COLLAPSE = 'add-collapse'
 export const REMOVE_COLLAPSE = 'remove-collapse'
 export const INIT = 'init'
+export const UDPATE_ERRORS = 'update-errors'
 
 export function addCollapse(formName, fieldName, index, isInit=true) {
   return {
@@ -16,6 +17,11 @@ export function init(field) {
     type: INIT,
     payload: {field}
   }
+}
+
+export function repeatErrors(errors) {
+  return: UDPATE_ERRORS,
+  payload: {errors}
 }
 
 export function removeCollapse(formName, fieldName, index) {

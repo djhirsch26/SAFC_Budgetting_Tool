@@ -1,5 +1,6 @@
 {
   "title": "Commonly Accepted Durable Goods",
+  "type": "numeric",
   "list": [
     {
       "title": "Permitted Expenses",
@@ -17,6 +18,7 @@
     },
     {
       "title": "Prohibited Expenses",
+      "type": "bullet",
       "list": [
         "Is purchased for personalized issue or use",
         "Will not be stored in an on-campus facility managed by the organization or its advisor;",
@@ -28,6 +30,7 @@
         "Uniforms unless the purpose of your organization is a performance or sports group;",
         {
           "title": "Is an office good such as, but not limited to:",
+          "type": "numeric",
           "list": [
             "Stickers",
             "Pens",

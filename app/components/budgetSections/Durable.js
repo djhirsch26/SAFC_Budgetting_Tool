@@ -22,6 +22,7 @@ class Durable extends Component {
   onSubmit(values) {
     console.log('DURABLE', values)
     this.props.addDurable(values)
+    window.alert('Durable Goods Saved To Budget')
   }
 
   render() {

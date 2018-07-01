@@ -20,8 +20,9 @@ class Travel extends Component {
 
   onSubmit(values) {
     console.log("TRAVEL",values)
-    console.log(this.props.addTravel)
     this.props.addTravel(values)
+    window.alert('Travel Events Saved To Budget')
+
   }
 
   render() {

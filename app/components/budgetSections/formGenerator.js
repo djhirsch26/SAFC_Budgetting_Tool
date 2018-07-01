@@ -53,7 +53,7 @@ class FormGenerator extends Component {
   }
 
   renderField(field) {
-    const {meta : {touched, error, dispatch}, values, index, jsonFile, thisVar} = field;
+    const {meta : {touched, error, dispatch}, values, index, jsonFile, onError, thisVar} = field;
     const classNhame = `form-group budgetField ${touched && error ? "has-danger" : ""}`;
     var mainClass;
     var labelClass;
@@ -64,6 +64,7 @@ class FormGenerator extends Component {
     var inpLabDivClass = ''
     var other = field.input
     var extraField = <div/>
+    var message = <div/>
     switch(field.type) {
       case 'file':
           mainClass = 'form-group row'
@@ -103,13 +104,25 @@ class FormGenerator extends Component {
           break;
     }
 
+    if (field.message) {
+      switch(typeof field.message) {
+        case 'object':
+          message = <ListGenerator list={field.message} depth={2}/>
+          break;
+        case 'string':
+          console.log('string', field.message)
+          break;
+        default:
+          console.log(typeof field.message, field.message)
+      }
+    }
+
     //TODO: GET TO USE MOST RECENT VALUE
 
     if (field.calculate) {
       var calculate = field.calculate
       onChange = (e) => {
         field.input.onChange(e)
-        console.log(e.target.value)
         var name = constructName(field.input.name, calculate.name)
         dispatch(change(jsonFile.name, name, calculate.function(e.target.value, values.values ? values.values : {}, index)))
       }
@@ -144,6 +157,9 @@ class FormGenerator extends Component {
       }
     }
 
+    if(onError && touched) {
+      onError(error)
+    }
 
     return(
       <div style={{paddingTop: '10px', marginBottom: '15px'}}>
@@ -151,6 +167,7 @@ class FormGenerator extends Component {
           {inpLab}
           {extraField}
         </div>
+        <div style={{paddingLeft: '20px'}}>{message}</div>
         <div style={{color: 'red'}}>
         {touched ? error : ""}
         </div>
@@ -163,6 +180,11 @@ class FormGenerator extends Component {
 
     if(!init[jsonFile.name] && fields.length==0 && opened!=undefined) {
       fields.push({})
+      if(!thisVar.repeatError) {
+        thisVar.repeatError = {}
+      }
+      thisVar.repeatError[questions.name]=[]
+      thisVar.repeatError[questions.name].push([])
       add(jsonFile.name, goods.fields.name, fields.length, init)
     }
     else if(!init) {
@@ -185,6 +207,7 @@ class FormGenerator extends Component {
     var onAdd = function(e) {
         e.preventDefault()
         fields.push({})
+        thisVar.repeatError[questions.name].push([])
         add(jsonFile.name, goods.fields.name)
     }
 
@@ -192,6 +215,7 @@ class FormGenerator extends Component {
       return (function(e) {
         e.preventDefault()
         fields.remove(index)
+        thisVar.repeatError[questions.name].splice(index,1)
         remove(jsonFile.name, goods.fields.name, index)
       })
     }
@@ -207,12 +231,28 @@ class FormGenerator extends Component {
       }
     }
 
+    var onError = function(index, index2) {
+      return (
+        function(e) {
+          if(thisVar.repeatError) {
+            if(e) {
+              thisVar.repeatError[questions.name][index][index2] = true
+            }
+            else {
+              thisVar.repeatError[questions.name][index][index2] = false
+            }
+          }
+        }
+      )
+    }
+
     return(
       <div>
       <div style={{paddingBottom: '3%'}}>
         {
         fields.map((good,index) => {
           var triggerText = values && values.values && values.values[fields.name] && values.values[fields.name][index] && values.values[fields.name][index].name!=undefined ? values.values[fields.name][index].name : `${questions.defaultTriggerText} ${index}`
+          var triggerStyle = {}
         return(
           <div key={index} className='collapser' style={{paddingBottom: '15px', position: 'relative'}}>
           <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={onTriggerClick}  open={opened[`${jsonFile.name}_${goods.fields.name}`] ? opened[`${jsonFile.name}_${goods.fields.name}`][index] : true} >
@@ -225,6 +265,7 @@ class FormGenerator extends Component {
             defaultValue='',
             calculate,
             display,
+            message,
           }, index2) => {
         return(
           <Field
@@ -238,6 +279,8 @@ class FormGenerator extends Component {
             display={display}
             calculate={calculate}
             normalize={normalize}
+            onError={onError(index, index2)}
+            message={message}
             values={values}
             index={index}
             component={renderField}
@@ -312,13 +355,37 @@ class FormGenerator extends Component {
           </div>
         }
 
+        var checkRepeatErrors = function() {
+          var errors=this.repeatError
+          var invalidFields = ''
+          console.log(this)
+          console.log(errors)
+          if(errors) {
+            Object.values(errors).forEach((repeatable, repeatIndex) => {
+              repeatable.forEach((qSet, qSetIndex) => {
+                if (qSet.includes(true)) {
+                  var indecies = qSet.map((value, index) => index)
+                  qSet.forEach((val, index) => {
+                    if(!val) {
+                      indecies[index] = -1
+                    }
+                  })
+                  indecies = indecies.filter(ind => ind>=0)
+                  console.log(jsonFile.name, jsonFile.repeat[repeatIndex].name, qSetIndex)
+                  this.props.openCollapse(jsonFile.name, jsonFile.repeat[repeatIndex].name, qSetIndex)
+                }
+              })
+            })
+          }
+        }
+
   		return(
       <div>
         <div className='lower-page'>
         <h2 className='page-title text-center'> {jsonFile.title} </h2>
           {repeated}
           {fields}
-  			  <button type="submit" className="btn btn-primary">Add to Budget</button>
+  			  <button type="submit" onClick={checkRepeatErrors.bind(this)}className="btn btn-primary">Add to Budget</button>
   			  <Link to="/" className="btn btn-danger">Cancel</Link>
           {links}
         </div>
