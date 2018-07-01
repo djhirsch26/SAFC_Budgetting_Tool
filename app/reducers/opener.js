@@ -3,9 +3,13 @@ import {
   CLOSE_COLLAPSE,
   ADD_COLLAPSE,
   REMOVE_COLLAPSE,
-  INIT} from '../actions'
+  INIT,
+  ADD_ERRORS,
+  UDPATE_ERRORS,
+  REMOVE_ERRORS
+} from '../actions'
 
-var initialState = {init: {}}
+var initialState = {init: {}, repeatError: {}}
 
 function modify(array, value, index) {
   return array.map((orig, ind) => {
@@ -62,6 +66,21 @@ export default function(state=initialState, action) {
 	case CLOSE_COLLAPSE:
     var temp = {}
     temp[`${action.payload.form}_${action.payload.field}`] = modify(state[`${action.payload.form}_${action.payload.field}`], false, action.payload.index)
+    return {...state,...temp}
+  case ADD_ERRORS:
+    var temp = {}
+    if(!state[`${action.payload.form}_${action.payload.field}`]) {
+      state[`${action.payload.form}_${action.payload.field}_error`] = []
+    }
+    temp[`${action.payload.form}_${action.payload.field}_error`] = insertItem(state[`${action.payload.form}_${action.payload.field}_error`], (new Array(action.payload.length)).fill(false), action.payload.index)
+    return {...state,...temp}
+  case UDPATE_ERRORS:
+    var temp = {}
+    temp[`${action.payload.form}_${action.payload.field}_error`] = modify(state[`${action.payload.form}_${action.payload.field}_error`], modify(state[`${action.payload.form}_${action.payload.field}_error`][action.payload.index], action.payload.value, action.payload.fieldIndex), action.payload.index)
+    return {...state,...temp}
+  case REMOVE_ERRORS:
+    var temp = {}
+    temp[`${action.payload.form}_${action.payload.field}_error`] = removeItem(state[`${action.payload.form}_${action.payload.field}_error`], action.payload.index)
     return {...state,...temp}
 	default:
 		return state;

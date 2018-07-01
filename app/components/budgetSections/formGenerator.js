@@ -8,7 +8,7 @@ import Collapsible from 'react-collapsible';
 import validate from '../validate';
 import ListGenerator from '../ListGenerator.js'
 
-import {openCollapse, closeCollapse, addCollapse, removeCollapse, init} from '../../actions'
+import {openCollapse, closeCollapse, addCollapse, removeCollapse, init, updateErrors, addErrors, removeErrors} from '../../actions'
 
 
 const isEmpty = function(obj) {
@@ -176,15 +176,15 @@ class FormGenerator extends Component {
   }
 
   renderGoods(goods) {
-    var {fields, jsonFile, thisVar, add, remove, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
+    var {fields, jsonFile, thisVar, add, remove, addError, updateError, removeError, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
 
+    console.log(thisVar.props.opened)
     if(!init[jsonFile.name] && fields.length==0 && opened!=undefined) {
       fields.push({})
-      if(!thisVar.repeatError) {
-        thisVar.repeatError = {}
-      }
-      thisVar.repeatError[questions.name]=[]
-      thisVar.repeatError[questions.name].push([])
+      // thisVar.repeatError={}
+      // thisVar.repeatError[questions.name]=[]
+      // thisVar.repeatError[questions.name].push([])
+      addError(jsonFile.name, questions.name, fields.length, questions.values.length)
       add(jsonFile.name, goods.fields.name, fields.length, init)
     }
     else if(!init) {
@@ -207,7 +207,8 @@ class FormGenerator extends Component {
     var onAdd = function(e) {
         e.preventDefault()
         fields.push({})
-        thisVar.repeatError[questions.name].push([])
+        // thisVar.repeatError[questions.name][fields.length] = [].fill(questions.values.length)
+        addError(jsonFile.name, questions.name, fields.length, questions.values.length)
         add(jsonFile.name, goods.fields.name)
     }
 
@@ -215,7 +216,8 @@ class FormGenerator extends Component {
       return (function(e) {
         e.preventDefault()
         fields.remove(index)
-        thisVar.repeatError[questions.name].splice(index,1)
+        // thisVar.repeatError[questions.name][index].splice()
+        removeError(jsonFile.name, questions.name, index)
         remove(jsonFile.name, goods.fields.name, index)
       })
     }
@@ -234,13 +236,16 @@ class FormGenerator extends Component {
     var onError = function(index, index2) {
       return (
         function(e) {
-          if(thisVar.repeatError) {
-            if(e) {
-              thisVar.repeatError[questions.name][index][index2] = true
-            }
-            else {
-              thisVar.repeatError[questions.name][index][index2] = false
-            }
+          if(e) {
+            console.log(jsonFile.name, questions.name, index, index2, true)
+            // updateError(jsonFile.name, questions.name, index, index2, true)
+            // thisVar.repeatError[questions.name][index][index2] = true
+          }
+          else {
+            console.log(jsonFile.name, questions.name, index, index2, false)
+
+            // updateError(jsonFile.name, questions.name, index, index2, true)
+            // thisVar.repeatError[questions.name][index][index2] = false
           }
         }
       )
@@ -318,6 +323,9 @@ class FormGenerator extends Component {
           open={this.props.openCollapse}
           close={this.props.closeCollapse}
           add={this.props.addCollapse}
+          addError={this.props.addErrors}
+          updateError={this.props.updateErrors}
+          removeError={this.props.removeErrors}
           remove={this.props.removeCollapse}
           thisVar={this}
           component={this.renderGoods}/>
@@ -356,27 +364,31 @@ class FormGenerator extends Component {
         }
 
         var checkRepeatErrors = function() {
-          var errors=this.repeatError
-          var invalidFields = ''
-          console.log(this)
-          console.log(errors)
-          if(errors) {
-            Object.values(errors).forEach((repeatable, repeatIndex) => {
-              repeatable.forEach((qSet, qSetIndex) => {
-                if (qSet.includes(true)) {
-                  var indecies = qSet.map((value, index) => index)
-                  qSet.forEach((val, index) => {
-                    if(!val) {
-                      indecies[index] = -1
-                    }
-                  })
-                  indecies = indecies.filter(ind => ind>=0)
-                  console.log(jsonFile.name, jsonFile.repeat[repeatIndex].name, qSetIndex)
-                  this.props.openCollapse(jsonFile.name, jsonFile.repeat[repeatIndex].name, qSetIndex)
-                }
-              })
-            })
+          console.log('whoop')
+          if(this.props.budget && this.props.budget[jsonFile.name]) {
+            console.log(this.props.budget[jsonFile.name].syncErrors)
           }
+          // var errors=this.repeatError
+          // var invalidFields = ''
+          // console.log(this)
+          // console.log(errors)
+          // if(errors) {
+          //   Object.values(errors).forEach((repeatable, repeatIndex) => {
+          //     repeatable.forEach((qSet, qSetIndex) => {
+          //       if (qSet.includes(true)) {
+          //         var indecies = qSet.map((value, index) => index)
+          //         qSet.forEach((val, index) => {
+          //           if(!val) {
+          //             indecies[index] = -1
+          //           }
+          //         })
+          //         indecies = indecies.filter(ind => ind>=0)
+          //         console.log(jsonFile.name, jsonFile.repeat[repeatIndex].name, qSetIndex)
+          //         this.props.openCollapse(jsonFile.name, jsonFile.repeat[repeatIndex].name, qSetIndex)
+          //       }
+          //     })
+          //   })
+          // }
         }
 
   		return(
@@ -407,7 +419,10 @@ function mapDispatchToProps(dispatch, ownProps) {
     closeCollapse,
     addCollapse,
     removeCollapse,
-    init
+    init,
+    addErrors,
+    removeErrors,
+    updateErrors
 }, dispatch)
 }
 

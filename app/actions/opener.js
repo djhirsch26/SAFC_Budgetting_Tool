@@ -4,6 +4,8 @@ export const ADD_COLLAPSE = 'add-collapse'
 export const REMOVE_COLLAPSE = 'remove-collapse'
 export const INIT = 'init'
 export const UDPATE_ERRORS = 'update-errors'
+export const ADD_ERRORS = 'add-errors'
+export const REMOVE_ERRORS = 'remove-errors'
 
 export function addCollapse(formName, fieldName, index, isInit=true) {
   return {
@@ -19,10 +21,24 @@ export function init(field) {
   }
 }
 
-export function repeatErrors(errors) {
+export function addErrors(formName, repeatableName, index, length) {
+  return{
+    type: ADD_ERRORS,
+    payload: {form: formName, field: repeatableName, index: index, length: length}
+  }
+}
+
+export function updateErrors(formName, repeatableName, index, fieldIndex, value) {
   return{
     type: UDPATE_ERRORS,
-    payload: {errors}
+    payload: {form: formName, field: repeatableName, index: index, fieldIndex: fieldIndex, value: value}
+  }
+}
+
+export function removeErrors(formName, repeatableName, index) {
+  return{
+    type: REMOVE_ERRORS,
+    payload: {form: formName, field: repeatableName, index: index}
   }
 }
 
