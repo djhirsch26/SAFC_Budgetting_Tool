@@ -5,10 +5,12 @@ import { Field, FieldArray, reduxForm, change} from 'redux-form';
 import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
+
 import validate from '../validate';
 import ListGenerator from '../ListGenerator.js'
 
-import {openCollapse, closeCollapse, addCollapse, removeCollapse, init, updateErrors, addErrors, removeErrors} from '../../actions'
+import Modal from '../Modal'
+import {openCollapse, closeCollapse, addCollapse, removeCollapse, init} from '../../actions'
 
 
 const isEmpty = function(obj) {
@@ -50,10 +52,11 @@ class FormGenerator extends Component {
 
   constructor(props) {
     super(props)
+    this.state = {}
   }
 
   renderField(field) {
-    const {meta : {touched, error, dispatch}, values, index, jsonFile, onError, thisVar} = field;
+    const {meta : {touched, error, dispatch}, values, index, jsonFile, thisVar} = field;
     const classNhame = `form-group budgetField ${touched && error ? "has-danger" : ""}`;
     var mainClass;
     var labelClass;
@@ -82,6 +85,7 @@ class FormGenerator extends Component {
           mainClass = 'form-check'
           labelClass = 'form-check-label'
           inputClass = 'form-check-input'
+          extraStyle = {paddingLeft: 0}
           break;
       case 'calculated':
           mainClass = 'form-group'
@@ -117,8 +121,6 @@ class FormGenerator extends Component {
       }
     }
 
-    //TODO: GET TO USE MOST RECENT VALUE
-
     if (field.calculate) {
       var calculate = field.calculate
       onChange = (e) => {
@@ -139,26 +141,24 @@ class FormGenerator extends Component {
     onChange={onChange}
 
     />
-    var label = <label className={labelClass} style={{minWidth: '50%', padding: 0}}>{field.label}</label>
+
+    var paddingLeft = field.type=='checkbox' ? 20 : 0
+    var label = <label className={labelClass} style={{minWidth: '50%', paddingLeft: paddingLeft, fontWeight: 'normal'}}>{field.label}</label>
 
     var inpLab = field.type=='checkbox' ? <div className={inpLabDivClass}>{input}{label}</div> : <div className={inpLabDivClass}>{label}{input}</div>
 
-
     if (field.type=='file' && values && values.values) {
       var file = extractValue(values.values, field.input.name)
+      // console.log(field.input.name, file)
       if (file) {
         inpLabDivClass = 'col-sm-12'
         labelClass=''
         var changeFile = () => {thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
         changeFile=changeFile.bind(thisVar)
-        var input2 = <label className='col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
-        label = <label className='col-form-label' style={{minWidth: '50%', marginBottom: '10px'}}><div style={{position: 'absolute', top: 2}}>{field.label}</div></label>
-        inpLab = <div className={inpLabDivClass} style={{padding: 0}}>{label}{input}{input2}</div>
+        var input2 = <label className='col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px', fontWeight: 'normal'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', borderRadius: 0,fontWeight: 'normal'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
+        label = <label className='col-form-label' style={{minWidth: '50%', marginBottom: '10px', float: 'left', fontWeight: 'normal'}}><div style={{position: 'absolute', top: 2}}>{field.label}</div></label>
+        inpLab = <div className={inpLabDivClass} style={{padding: 0, display: 'inline'}}>{label}{input}{input2}</div>
       }
-    }
-
-    if(onError && touched) {
-      onError(error)
     }
 
     return(
@@ -176,15 +176,11 @@ class FormGenerator extends Component {
   }
 
   renderGoods(goods) {
-    var {fields, jsonFile, thisVar, add, remove, addError, updateError, removeError, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
+    var {fields, jsonFile, thisVar, add, remove, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
 
     console.log(thisVar.props.opened)
     if(!init[jsonFile.name] && fields.length==0 && opened!=undefined) {
       fields.push({})
-      // thisVar.repeatError={}
-      // thisVar.repeatError[questions.name]=[]
-      // thisVar.repeatError[questions.name].push([])
-      addError(jsonFile.name, questions.name, fields.length, questions.values.length)
       add(jsonFile.name, goods.fields.name, fields.length, init)
     }
     else if(!init) {
@@ -207,8 +203,6 @@ class FormGenerator extends Component {
     var onAdd = function(e) {
         e.preventDefault()
         fields.push({})
-        // thisVar.repeatError[questions.name][fields.length] = [].fill(questions.values.length)
-        addError(jsonFile.name, questions.name, fields.length, questions.values.length)
         add(jsonFile.name, goods.fields.name)
     }
 
@@ -216,8 +210,6 @@ class FormGenerator extends Component {
       return (function(e) {
         e.preventDefault()
         fields.remove(index)
-        // thisVar.repeatError[questions.name][index].splice()
-        removeError(jsonFile.name, questions.name, index)
         remove(jsonFile.name, goods.fields.name, index)
       })
     }
@@ -233,31 +225,12 @@ class FormGenerator extends Component {
       }
     }
 
-    var onError = function(index, index2) {
-      return (
-        function(e) {
-          if(e) {
-            console.log(jsonFile.name, questions.name, index, index2, true)
-            // updateError(jsonFile.name, questions.name, index, index2, true)
-            // thisVar.repeatError[questions.name][index][index2] = true
-          }
-          else {
-            console.log(jsonFile.name, questions.name, index, index2, false)
-
-            // updateError(jsonFile.name, questions.name, index, index2, true)
-            // thisVar.repeatError[questions.name][index][index2] = false
-          }
-        }
-      )
-    }
-
     return(
       <div>
       <div style={{paddingBottom: '3%'}}>
         {
         fields.map((good,index) => {
           var triggerText = values && values.values && values.values[fields.name] && values.values[fields.name][index] && values.values[fields.name][index].name!=undefined ? values.values[fields.name][index].name : `${questions.defaultTriggerText} ${index}`
-          var triggerStyle = {}
         return(
           <div key={index} className='collapser' style={{paddingBottom: '15px', position: 'relative'}}>
           <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={onTriggerClick}  open={opened[`${jsonFile.name}_${goods.fields.name}`] ? opened[`${jsonFile.name}_${goods.fields.name}`][index] : true} >
@@ -284,7 +257,6 @@ class FormGenerator extends Component {
             display={display}
             calculate={calculate}
             normalize={normalize}
-            onError={onError(index, index2)}
             message={message}
             values={values}
             index={index}
@@ -305,10 +277,57 @@ class FormGenerator extends Component {
     this.props.init(this.props.json.name)
   }
 
+  showModal() {
+   this.setState({show: true})
+  }
+
+  closeModal(){
+   this.setState({show: false})
+  }
+
+  checkRepeatErrors = function() {
+    var invalidFields = ''
+    const jsonFile = this.props.json
+    console.log('whoop')
+    if(this.props.budget && this.props.budget[jsonFile.name]) {
+      const errors = this.props.budget[jsonFile.name].syncErrors
+      if(!errors) {
+
+      }
+      else {
+
+        console.log(errors)
+        function parseErrorObject(errors, prefix) {
+          for (var key in errors) {
+            if (typeof errors[key]=='string') {
+              invalidFields+= 'Error in ' + prefix + ': ' + key + ' - ' + errors[key] + '\n\n'
+            }
+            else if (typeof errors[key]=='object') {
+              if (!isNaN(key)) {
+                parseErrorObject(errors[key], prefix + " #" + key)
+                console.log(jsonFile.name, prefix, key)
+                this.props.openCollapse(jsonFile.name, prefix, parseInt(key))
+              }
+              else {
+                parseErrorObject(errors[key], prefix + key)
+              }
+            }
+          }
+        }
+        parseErrorObject=parseErrorObject.bind(this)
+        parseErrorObject(errors, "")
+      }
+    }
+    console.log(invalidFields)
+
+    // window.alert(invalidFields)
+  }
+
   render() {
       const jsonFile = this.props.json
       const repeated = jsonFile.repeat ?
-      jsonFile.repeat.map((questions, index) => {
+      <div className='repeatFields'>
+      {jsonFile.repeat.map((questions, index) => {
          return (
           <FieldArray
           name={questions.name}
@@ -323,14 +342,12 @@ class FormGenerator extends Component {
           open={this.props.openCollapse}
           close={this.props.closeCollapse}
           add={this.props.addCollapse}
-          addError={this.props.addErrors}
-          updateError={this.props.updateErrors}
-          removeError={this.props.removeErrors}
           remove={this.props.removeCollapse}
           thisVar={this}
           component={this.renderGoods}/>
         )
-        })
+        })}
+        </div>
       : <div/>
 
       const fields = jsonFile.single && jsonFile.single.length!=0 ?
@@ -344,7 +361,7 @@ class FormGenerator extends Component {
             type={type}
             jsonFile={jsonFile}
             dispatch={this.props.dispatch}
-            values={this.props.section}
+            values={this.props.budget[jsonFile.name]}
             thisVar={this}
       			component={this.renderField}
       		/>
@@ -354,53 +371,26 @@ class FormGenerator extends Component {
         if(jsonFile.links) {
           links =
           <div style={{marginTop: '10px', marginBottom: '5px'}}>
-          <h5 style={{textAlign: 'center'}}> Useful Links </h5>
+          <h3 style={{textAlign: 'center'}}> Useful Links </h3>
           {jsonFile.links.map(({label, link}) => {
             return (
-              <div key={label}><Link className='btn btn-secondary btn-link btn-block' to={link}>{label}</Link></div>
+              <div key={label}><Link className='btn btn-secondary btn-link btn-block' style={{fontSize: '15px'}} to={link}>{label}</Link></div>
             )
           })}
           </div>
         }
 
-        var checkRepeatErrors = function() {
-          console.log('whoop')
-          if(this.props.budget && this.props.budget[jsonFile.name]) {
-            console.log(this.props.budget[jsonFile.name].syncErrors)
-          }
-          // var errors=this.repeatError
-          // var invalidFields = ''
-          // console.log(this)
-          // console.log(errors)
-          // if(errors) {
-          //   Object.values(errors).forEach((repeatable, repeatIndex) => {
-          //     repeatable.forEach((qSet, qSetIndex) => {
-          //       if (qSet.includes(true)) {
-          //         var indecies = qSet.map((value, index) => index)
-          //         qSet.forEach((val, index) => {
-          //           if(!val) {
-          //             indecies[index] = -1
-          //           }
-          //         })
-          //         indecies = indecies.filter(ind => ind>=0)
-          //         console.log(jsonFile.name, jsonFile.repeat[repeatIndex].name, qSetIndex)
-          //         this.props.openCollapse(jsonFile.name, jsonFile.repeat[repeatIndex].name, qSetIndex)
-          //       }
-          //     })
-          //   })
-          // }
-        }
-
   		return(
       <div>
         <div className='lower-page'>
-        <h2 className='page-title text-center'> {jsonFile.title} </h2>
+        <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
           {repeated}
           {fields}
-  			  <button type="submit" onClick={checkRepeatErrors.bind(this)}className="btn btn-primary">Add to Budget</button>
-  			  <Link to="/" className="btn btn-danger">Cancel</Link>
+  			  <button type="submit" onClick={this.checkRepeatErrors.bind(this)}className="btn btn-primary">Add to Budget</button>
+  			  <Link to="/" className="btn btn-danger" style={{fontSize: '15px'}}>Cancel</Link>
           {links}
         </div>
+
       </div>
   		);
   	}
@@ -419,10 +409,7 @@ function mapDispatchToProps(dispatch, ownProps) {
     closeCollapse,
     addCollapse,
     removeCollapse,
-    init,
-    addErrors,
-    removeErrors,
-    updateErrors
+    init
 }, dispatch)
 }
 

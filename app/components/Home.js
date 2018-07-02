@@ -24,7 +24,7 @@ class Home extends Component {
   render() {
     return (
       <div className='home'>
-        <div className='banner'><span>Welcome to the SAFC Budget Tool</span></div>
+        <div className='banner'><span >Welcome to the SAFC Budget Tool</span></div>
         <div className='buttons'>
         <div className='btn-group'>
           <div><LinkButton text='Create a New Budget' link={`/durable`}/></div>

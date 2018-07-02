@@ -15,7 +15,7 @@ import { DURABLE } from './constants'
 
 export default () => (
   <App>
-    <div>
+    <div className='root'>
     <Topbar/>
     <div className="lowerBlock">
     <Switch>

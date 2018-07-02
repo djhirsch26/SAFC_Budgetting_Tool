@@ -5,7 +5,7 @@ export const durable = {
     {
       "addButton": "Add Durable Good",
       "defaultTriggerText": "Durable Good",
-      "name": "goods",
+      "name": "Durable Goods",
       "removeButton": "Remove Good",
       "values": [
         {
@@ -22,14 +22,14 @@ export const durable = {
         },
         {
           "label": "Does the good have a life of more than 1 year",
-          "name": "life",
+          "name": "life_span",
           "type": "checkbox",
           "defaultValue": "checked",
           "errorMessage": "Good must have a life of at least 1 year"
         },
         {
           "label": "Supporting Documentation",
-          "name": "supporting",
+          "name": "supporting_documentation",
           "type": "file",
           "errorMessage": "Please Upload Supporting Documentation"
         }
@@ -40,7 +40,7 @@ export const durable = {
   "single": [
     {
       "label" : "Last 3 Years of Goods",
-      "name": "lastThree",
+      "name": "last_3_years_of_goods",
       "type": "file",
       "errorMessage": "Please Upload the Last 3 Years of Durable Goods "
     }

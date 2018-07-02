@@ -1,6 +1,6 @@
 {
   "title": "Commonly Accepted Durable Goods",
-  "type": "numeric",
+  "type": "bullet",
   "list": [
     {
       "title": "Permitted Expenses",
@@ -30,7 +30,7 @@
         "Uniforms unless the purpose of your organization is a performance or sports group;",
         {
           "title": "Is an office good such as, but not limited to:",
-          "type": "numeric",
+          "type": "bullet",
           "list": [
             "Stickers",
             "Pens",

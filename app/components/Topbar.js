@@ -13,7 +13,7 @@ export default class Topbar extends Component {
   render() {
     return (
       <div className="topbar">
-      <h3>Welcome to the SAFC</h3>
+      <h1 style={{marginBottom: '10px'}}>Welcome to the SAFC</h1>
       <div className='buttons'>
         <div className='topButton'><LinkButton className='topLinkButton' text='Home' link={`/`}/></div>
         <div className='topButton'><LinkButton className='topLinkButton' text='Durable' link={`/${DURABLE}`}/></div>

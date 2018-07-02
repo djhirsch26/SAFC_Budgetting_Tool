@@ -9,17 +9,17 @@ import {
 
 export const travel = {
   "name": "travel",
-  "Title": "Travel Events",
+  "title": "Travel Events",
   "repeat": [
     {
       "addButton": "Add Travel Event",
       "defaultTriggerText": "Travel Event",
-      "name": "travelEvents",
+      "name": "Travel Events",
       "removeButton": "Remove Event",
       "values": [
       {
         "label" : "Name of Event",
-        "name": "name",
+        "name": "Name",
         "type": "text",
         "errorMessage": "Enter a name for this event"
       },
@@ -42,12 +42,12 @@ export const travel = {
       },
       {
         "label": "Price Quote (if requesting registration fees)",
-        "name": "price_quote",
+        "name": "Price Quote",
         "type": "file"
       },
       {
         "label": "Proof of Event (Must Include)",
-        "name": "proof",
+        "name": "Proof of Event",
         "type": "file",
         "errorMessage": "Must have proof of event",
         "message": {
@@ -62,7 +62,7 @@ export const travel = {
       },
       {
         "label" : "Miles (One Way)",
-        "name": "miles",
+        "name": "Miles",
         "normalize": numeric,
         "errorMessage": "must have some amount of miles",
         "calculate": {
@@ -78,7 +78,7 @@ export const travel = {
       },
       {
         "label": "Max Funding",
-        "name": "max_funding",
+        "name": "Max Funding",
         "type": "calculated",
         "display": monetary
       }

@@ -28,9 +28,9 @@ class ListGenerator extends Component {
         return (
           <div style={{marginBottom: '15px'}}>
             <div className='page-title text-center' style={{marginBottom: '20px'}}>
-              <h2>
+              <h1>
               {title ? title : 'Enter Title'}
-              </h2>
+              </h1>
             </div>
             {list}
           </div>
@@ -57,9 +57,9 @@ class ListGenerator extends Component {
         return (
           <div style={{marginBottom: '15px'}}>
             <div className='page-title text-center' style={{marginBottom: '2px'}}>
-              <h4>
+              <h2 style={{fontSize: '22px'}}>
               {title ? title : 'Enter Title'}
-              </h4>
+              </h2>
             </div>
             {list}
           </div>
