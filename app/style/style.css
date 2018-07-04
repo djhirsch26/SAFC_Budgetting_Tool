@@ -7,7 +7,7 @@
 .topbar {
   position: relative;
   text-align: center;
-  height: 10vh;
+  height: 11vh;
   background-color: #B31B1B;
 }
 
@@ -17,7 +17,8 @@
   padding-bottom: 5vh;
 }
 
-.topbar h3 {
+.topbar h2 {
+  padding-top: 8px;
   margin-top: 0;
 }
 
@@ -142,7 +143,7 @@ body {
   padding-left: 3%;
   padding-top: 1%;
   font-size: 15px;
-  font-weight: normal;
+  /* font-weight: normal; */
 }
 
 .lower-page button {

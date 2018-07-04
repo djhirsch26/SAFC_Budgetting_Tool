@@ -14,7 +14,7 @@ export const travel = {
     {
       "addButton": "Add Travel Event",
       "defaultTriggerText": "Travel Event",
-      "name": "Travel Events",
+      "name": "travel_events",
       "removeButton": "Remove Event",
       "values": [
       {
@@ -25,9 +25,9 @@ export const travel = {
       },
       {
         "label" : "Does the event meet all the following:",
-        "name": "Critirea",
+        "name": "criteria",
         "type": "checkbox",
-        "errorMessage": "Must meet the following Critirea",
+        "errorMessage": "Must meet the following criteria",
         "message": {
           "title": "",
           "list": [
@@ -42,12 +42,12 @@ export const travel = {
       },
       {
         "label": "Price Quote (if requesting registration fees)",
-        "name": "Price Quote",
+        "name": "price_quote",
         "type": "file"
       },
       {
         "label": "Proof of Event (Must Include)",
-        "name": "Proof of Event",
+        "name": "proof_of_event",
         "type": "file",
         "errorMessage": "Must have proof of event",
         "message": {
@@ -62,23 +62,23 @@ export const travel = {
       },
       {
         "label" : "Miles (One Way)",
-        "name": "Miles",
+        "name": "miles",
         "normalize": numeric,
         "errorMessage": "must have some amount of miles",
         "calculate": {
           "name": "max_funding",
           "function": function(value, allValues, index) {
-              if (allValues.travelEvents) {
-                var miles = numeric(value, allValues.travelEvents[index].miles)
+              if (allValues["travel_events"]) {
+                var miles = numeric(value, allValues["travel_events"][index].miles)
                 return Math.round(miles * 2 * FUNDING_PER_MILE*100)/100
               }
-              return 10
+              return 0
             }
           }
       },
       {
         "label": "Max Funding",
-        "name": "Max Funding",
+        "name": "max_funding",
         "type": "calculated",
         "display": monetary
       }

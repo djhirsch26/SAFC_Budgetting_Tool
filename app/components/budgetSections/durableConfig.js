@@ -5,7 +5,7 @@ export const durable = {
     {
       "addButton": "Add Durable Good",
       "defaultTriggerText": "Durable Good",
-      "name": "Durable Goods",
+      "name": "durable_goods",
       "removeButton": "Remove Good",
       "values": [
         {

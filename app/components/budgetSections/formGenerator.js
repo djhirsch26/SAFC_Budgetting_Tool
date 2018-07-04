@@ -6,10 +6,11 @@ import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
 
+import {Modal, Button} from 'react-bootstrap'
+
 import validate from '../validate';
 import ListGenerator from '../ListGenerator.js'
 
-import Modal from '../Modal'
 import {openCollapse, closeCollapse, addCollapse, removeCollapse, init} from '../../actions'
 
 
@@ -52,7 +53,7 @@ class FormGenerator extends Component {
 
   constructor(props) {
     super(props)
-    this.state = {}
+    this.state = {show: false}
   }
 
   renderField(field) {
@@ -114,7 +115,7 @@ class FormGenerator extends Component {
           message = <ListGenerator list={field.message} depth={2}/>
           break;
         case 'string':
-          console.log('string', field.message)
+          message = <div>{field.message}</div>
           break;
         default:
           console.log(typeof field.message, field.message)
@@ -151,13 +152,15 @@ class FormGenerator extends Component {
       var file = extractValue(values.values, field.input.name)
       // console.log(field.input.name, file)
       if (file) {
-        inpLabDivClass = 'col-sm-12'
-        labelClass=''
         var changeFile = () => {thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
         changeFile=changeFile.bind(thisVar)
-        var input2 = <label className='col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px', fontWeight: 'normal'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', borderRadius: 0,fontWeight: 'normal'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
-        label = <label className='col-form-label' style={{minWidth: '50%', marginBottom: '10px', float: 'left', fontWeight: 'normal'}}><div style={{position: 'absolute', top: 2}}>{field.label}</div></label>
-        inpLab = <div className={inpLabDivClass} style={{padding: 0, display: 'inline'}}>{label}{input}{input2}</div>
+        label = <div ><div style={{float: 'left'}} className='col-sm-0'>{field.label}</div></div>
+        var input2 = <div style={{float: 'right', marginRight: '30px'}}><div style={{position: 'relative'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', borderRadius: 0, float: 'left', fontWeight: 'normal'}}>Change File</button><div style={{float: 'left'}}>{file[0].name}</div></div></div>
+        // var input2 = <label className='form-check-input col-sm-6' style={{ position: 'relative', fontWeight: 'normal'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', borderRadius: 0,fontWeight: 'normal'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
+        // label = <div className='form-check-label col-sm-6' style={{position: 'relative'}}<label style={{minWidth: '50%', marginBottom: '10px', float: 'left', fontWeight: 'normal', position: 'absolute', top: 2}}><div className='col-sm-6' >{field.label}</div></label>
+        // var input2 = <label className='col-form-label col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px', fontWeight: 'normal'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', borderRadius: 0,fontWeight: 'normal'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
+        // label = <label className='col-form-label col-sm-6' style={{minWidth: '50%', marginBottom: '10px', float: 'left', fontWeight: 'normal', position: 'absolute', top: 2}}><div className='col=sm-6' >{field.label}</div></label>
+        inpLab = <div className='artificialFile'>{label}{input2}<div style={{visibility: 'hidden'}}>{input}</div></div>
       }
     }
 
@@ -177,8 +180,6 @@ class FormGenerator extends Component {
 
   renderGoods(goods) {
     var {fields, jsonFile, thisVar, add, remove, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
-
-    console.log(thisVar.props.opened)
     if(!init[jsonFile.name] && fields.length==0 && opened!=undefined) {
       fields.push({})
       add(jsonFile.name, goods.fields.name, fields.length, init)
@@ -267,7 +268,7 @@ class FormGenerator extends Component {
         </div>
       )})
       }
-      <div style={{overflow: 'hidden'}}><button className='btn btn-secondary' type="button" style={{float: 'right'}} onClick={onAdd}>{questions.addButton}</button></div>
+      <div style={{overflow: 'hidden'}}><button className='btn btn-success' type="button" style={{float: 'right'}} onClick={onAdd}>{questions.addButton}</button></div>
           </div>
       </div>
     )
@@ -285,27 +286,28 @@ class FormGenerator extends Component {
    this.setState({show: false})
   }
 
+  snakeToTitle(word) {
+    var title = word.split('_').map((word) => {
+      return (word.replace(/^\w/, c => c.toUpperCase()))
+    }).reduce((acc, cur) => acc + ' ' + cur)
+    return title
+  }
+
   checkRepeatErrors = function() {
     var invalidFields = ''
     const jsonFile = this.props.json
-    console.log('whoop')
     if(this.props.budget && this.props.budget[jsonFile.name]) {
       const errors = this.props.budget[jsonFile.name].syncErrors
-      if(!errors) {
-
-      }
-      else {
-
+      if(errors) {
         console.log(errors)
         function parseErrorObject(errors, prefix) {
           for (var key in errors) {
             if (typeof errors[key]=='string') {
-              invalidFields+= 'Error in ' + prefix + ': ' + key + ' - ' + errors[key] + '\n\n'
+              invalidFields+= 'Error in ' + this.snakeToTitle(prefix) + ': ' + this.snakeToTitle(key) + ' - ' + this.snakeToTitle(errors[key]) + '\n\n'
             }
             else if (typeof errors[key]=='object') {
               if (!isNaN(key)) {
                 parseErrorObject(errors[key], prefix + " #" + key)
-                console.log(jsonFile.name, prefix, key)
                 this.props.openCollapse(jsonFile.name, prefix, parseInt(key))
               }
               else {
@@ -319,7 +321,7 @@ class FormGenerator extends Component {
       }
     }
     console.log(invalidFields)
-
+    this.showModal()
     // window.alert(invalidFields)
   }
 
@@ -370,8 +372,8 @@ class FormGenerator extends Component {
         var links = <div/>
         if(jsonFile.links) {
           links =
-          <div style={{marginTop: '10px', marginBottom: '5px'}}>
-          <h3 style={{textAlign: 'center'}}> Useful Links </h3>
+          <div style={{marginTop: '10px', border: 'solid 1px', marginBottom: '5px'}}>
+          <h4 style={{textAlign: 'center', textDecoration: 'underline', verticalAlign: 'center'}}> Useful Links </h4>
           {jsonFile.links.map(({label, link}) => {
             return (
               <div key={label}><Link className='btn btn-secondary btn-link btn-block' style={{fontSize: '15px'}} to={link}>{label}</Link></div>
@@ -380,17 +382,38 @@ class FormGenerator extends Component {
           </div>
         }
 
+        const modal =
+        <div>
+        <Button bsStyle="success" className='btn-block' onClick={this.showModal.bind(this)}>Create</Button>
+
+        <Modal show={this.state.show} onHide={this.closeModal.bind(this)} aria-labelledby='ModalHeader'>
+            <Modal.Header closeButton>
+                <Modal.Title id='ModalHeader'>A Title Goes here</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <p>Some Content here</p>
+            </Modal.Body>
+            <Modal.Footer>
+
+                    <button className='btn btn-primary'>
+                        Save
+                    </button>
+
+            </Modal.Footer>
+        </Modal>
+        </div>
+
   		return(
       <div>
         <div className='lower-page'>
         <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
           {repeated}
           {fields}
-  			  <button type="submit" onClick={this.checkRepeatErrors.bind(this)}className="btn btn-primary">Add to Budget</button>
+  			  <Button type="submit" onClick={this.checkRepeatErrors.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>Add to Budget</Button>
   			  <Link to="/" className="btn btn-danger" style={{fontSize: '15px'}}>Cancel</Link>
           {links}
         </div>
-
+        {modal}
       </div>
   		);
   	}
