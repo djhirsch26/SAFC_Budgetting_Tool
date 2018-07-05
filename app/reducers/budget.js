@@ -3,16 +3,21 @@ import {
   ADD_TRAVEL
 } from '../actions'
 
+import {DURABLE} from '../constants'
+
 var initialState = {
-  durable: {},
   travel: {},
   local: {}
 }
 
+initialState[DURABLE] = {}
+
 export default function(state=initialState, action) {
 	switch(action.type) {
   case ADD_DURABLE:
-    return {...state, durable: action.payload.durable}
+    var temp = {}
+    temp[DURABLE] = action.payload[DURABLE]
+    return {...state, ...temp}
   case ADD_TRAVEL:
     return {...state, travel: action.payload.travel}
 	default:

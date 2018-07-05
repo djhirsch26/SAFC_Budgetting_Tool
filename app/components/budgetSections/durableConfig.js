@@ -1,5 +1,7 @@
+import {DURABLE} from '../../constants'
+
 export const durable = {
-  "name": "durable",
+  "name": DURABLE,
   "title": "Durable Goods",
   "repeat": [
     {

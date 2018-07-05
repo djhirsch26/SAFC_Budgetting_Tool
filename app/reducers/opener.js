@@ -3,7 +3,8 @@ import {
   CLOSE_COLLAPSE,
   ADD_COLLAPSE,
   REMOVE_COLLAPSE,
-  INIT
+  INIT,
+  UPDATE_INVALID
 } from '../actions'
 
 var initialState = {init: {}, repeatError: {}}
@@ -60,6 +61,10 @@ export default function(state=initialState, action) {
     var temp = {}
     temp[`${action.payload.form}_${action.payload.field}`] = modify(state[`${action.payload.form}_${action.payload.field}`], true, action.payload.index)
     return {...state,...temp}
+  case UPDATE_INVALID:
+    var temp = {}
+    temp[`${action.payload.form}_invalids`] = action.payload.invalids
+    return {...state, ...temp}
 	case CLOSE_COLLAPSE:
     var temp = {}
     temp[`${action.payload.form}_${action.payload.field}`] = modify(state[`${action.payload.form}_${action.payload.field}`], false, action.payload.index)

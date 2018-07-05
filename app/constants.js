@@ -1,4 +1,4 @@
-export const DURABLE = 'durable'
+export const DURABLE = 'durable_goods'
 export const TRAVEL = 'travel'
 
 

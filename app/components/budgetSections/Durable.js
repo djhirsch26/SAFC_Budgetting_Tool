@@ -41,6 +41,8 @@ class Durable extends Component {
 
   const validate = validationCreator(durable)
 
+  console.log('HERE', durable)
+
 export default connect(
   (state) => ({
   }),

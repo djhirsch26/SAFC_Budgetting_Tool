@@ -19,7 +19,7 @@ export const travel = {
       "values": [
       {
         "label" : "Name of Event",
-        "name": "Name",
+        "name": "name",
         "type": "text",
         "errorMessage": "Enter a name for this event"
       },
@@ -63,7 +63,7 @@ export const travel = {
       {
         "label" : "Miles (One Way)",
         "name": "miles",
-        "normalize": numeric,
+        "type": "number",
         "errorMessage": "must have some amount of miles",
         "calculate": {
           "name": "max_funding",

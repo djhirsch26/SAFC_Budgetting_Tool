@@ -11,7 +11,16 @@ import {Modal, Button} from 'react-bootstrap'
 import validate from '../validate';
 import ListGenerator from '../ListGenerator.js'
 
-import {openCollapse, closeCollapse, addCollapse, removeCollapse, init} from '../../actions'
+import {snakeToTitle} from '../../utils'
+
+import {
+  openCollapse,
+  closeCollapse,
+  addCollapse,
+  removeCollapse,
+  init,
+  updateInvalids
+} from '../../actions'
 
 
 const isEmpty = function(obj) {
@@ -150,17 +159,21 @@ class FormGenerator extends Component {
 
     if (field.type=='file' && values && values.values) {
       var file = extractValue(values.values, field.input.name)
-      // console.log(field.input.name, file)
-      if (file) {
+      if (file && file.length!=0) {
         var changeFile = () => {thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
         changeFile=changeFile.bind(thisVar)
-        label = <div ><div style={{float: 'left'}} className='col-sm-0'>{field.label}</div></div>
-        var input2 = <div style={{float: 'right', marginRight: '30px'}}><div style={{position: 'relative'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', borderRadius: 0, float: 'left', fontWeight: 'normal'}}>Change File</button><div style={{float: 'left'}}>{file[0].name}</div></div></div>
-        // var input2 = <label className='form-check-input col-sm-6' style={{ position: 'relative', fontWeight: 'normal'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', borderRadius: 0,fontWeight: 'normal'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
-        // label = <div className='form-check-label col-sm-6' style={{position: 'relative'}}<label style={{minWidth: '50%', marginBottom: '10px', float: 'left', fontWeight: 'normal', position: 'absolute', top: 2}}><div className='col-sm-6' >{field.label}</div></label>
-        // var input2 = <label className='col-form-label col-sm-6' style={{minWidth: '40%', maxHeight: '30px', marginBottom: '0px', fontWeight: 'normal'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', borderRadius: 0,fontWeight: 'normal'}}>Change File</button><div className='' style={{display: 'inline', maxHeight:'25px', overflow: 'hidden'}}>{file[0].name}</div></label>
-        // label = <label className='col-form-label col-sm-6' style={{minWidth: '50%', marginBottom: '10px', float: 'left', fontWeight: 'normal', position: 'absolute', top: 2}}><div className='col=sm-6' >{field.label}</div></label>
-        inpLab = <div className='artificialFile'>{label}{input2}<div style={{visibility: 'hidden'}}>{input}</div></div>
+        label = <div ><div style={{float: 'left', paddingLeft: paddingLeft}} className='col-form-label col-sm-6'>{field.label}</div></div>
+        var input2 = <div className='col-sm-6' style={{marginRight: '30px', marginRight: 0, padding: '0px'}}><div style={{position: 'relative'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', backgroundColor: 'white', border: 0,
+          paddingBottom: 1, fontFamily: 'Arial', fontSize: '11px', width: 76, height: 18, border: '1px solid #DBDBDB', boxShadow: '0 1px 1px 0 rgba(0,0,0,0.1)', float: 'left', fontWeight: 'normal'}}>Change File</button><div style={{float: 'left'}}>{file[0] ? file[0].name : 'Choose File'}</div></div></div>
+        inpLab = <div>{label}{input2}<div style={{visibility: 'hidden'}}>{input}</div></div>
+      }
+      else {
+        var chooseFile = () => {thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
+        chooseFile=chooseFile.bind(thisVar)
+        label = <div ><div style={{float: 'left', paddingLeft: paddingLeft}} className='col-form-label col-sm-6'>{field.label}</div></div>
+        var input2 = <div className='col-sm-6' style={{marginRight: '30px', marginRight: 0, padding: '0px'}}><div style={{position: 'relative'}}><button onClick={(e)=>{e.preventDefault(); chooseFile()}} style={{marginRight: '8px', color: 'black', backgroundColor: 'white', border: 0,
+          paddingBottom: 1, fontFamily: 'Arial', fontSize: '11px', width: 76, height: 18, border: '1px solid #DBDBDB', boxShadow: '0 1px 1px 0 rgba(0,0,0,0.1)', float: 'left', fontWeight: 'normal'}}>Choose File</button><div style={{float: 'left'}}>{' No File chosen'}</div></div></div>
+        inpLab = <div>{label}{input2}<div style={{visibility: 'hidden'}}>{input}</div></div>
       }
     }
 
@@ -231,7 +244,7 @@ class FormGenerator extends Component {
       <div style={{paddingBottom: '3%'}}>
         {
         fields.map((good,index) => {
-          var triggerText = values && values.values && values.values[fields.name] && values.values[fields.name][index] && values.values[fields.name][index].name!=undefined ? values.values[fields.name][index].name : `${questions.defaultTriggerText} ${index}`
+          var triggerText = values && values.values && values.values[fields.name] && values.values[fields.name][index] && values.values[fields.name][index].name!=undefined ? values.values[fields.name][index].name : `${questions.defaultTriggerText} ${index + 1}`
         return(
           <div key={index} className='collapser' style={{paddingBottom: '15px', position: 'relative'}}>
           <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={onTriggerClick}  open={opened[`${jsonFile.name}_${goods.fields.name}`] ? opened[`${jsonFile.name}_${goods.fields.name}`][index] : true} >
@@ -286,28 +299,20 @@ class FormGenerator extends Component {
    this.setState({show: false})
   }
 
-  snakeToTitle(word) {
-    var title = word.split('_').map((word) => {
-      return (word.replace(/^\w/, c => c.toUpperCase()))
-    }).reduce((acc, cur) => acc + ' ' + cur)
-    return title
-  }
-
   checkRepeatErrors = function() {
-    var invalidFields = ''
+    var invalidFields = []
     const jsonFile = this.props.json
     if(this.props.budget && this.props.budget[jsonFile.name]) {
       const errors = this.props.budget[jsonFile.name].syncErrors
       if(errors) {
-        console.log(errors)
         function parseErrorObject(errors, prefix) {
           for (var key in errors) {
             if (typeof errors[key]=='string') {
-              invalidFields+= 'Error in ' + this.snakeToTitle(prefix) + ': ' + this.snakeToTitle(key) + ' - ' + this.snakeToTitle(errors[key]) + '\n\n'
+              invalidFields.push('Error in ' + snakeToTitle(prefix) + ': ' + snakeToTitle(key) + ' - ' + snakeToTitle(errors[key]) + '\n\n')
             }
             else if (typeof errors[key]=='object') {
               if (!isNaN(key)) {
-                parseErrorObject(errors[key], prefix + " #" + key)
+                parseErrorObject(errors[key], prefix + " #" + (parseInt(key)+1))
                 this.props.openCollapse(jsonFile.name, prefix, parseInt(key))
               }
               else {
@@ -320,8 +325,10 @@ class FormGenerator extends Component {
         parseErrorObject(errors, "")
       }
     }
-    console.log(invalidFields)
-    this.showModal()
+    if(invalidFields.length!=0) {
+      this.showModal()
+    }
+    this.props.updateInvalids(jsonFile.name, invalidFields)
     // window.alert(invalidFields)
   }
 
@@ -382,24 +389,17 @@ class FormGenerator extends Component {
           </div>
         }
 
-        const modal =
+        var modal =
         <div>
-        <Button bsStyle="success" className='btn-block' onClick={this.showModal.bind(this)}>Create</Button>
-
         <Modal show={this.state.show} onHide={this.closeModal.bind(this)} aria-labelledby='ModalHeader'>
             <Modal.Header closeButton>
-                <Modal.Title id='ModalHeader'>A Title Goes here</Modal.Title>
+                <Modal.Title id='ModalHeader'>Form Errors</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <p>Some Content here</p>
+                {this.props.opened[`${jsonFile.name}_invalids`] ? this.props.opened[`${jsonFile.name}_invalids`].map((error, index) => {
+                  return (<p key={index}>{error}</p>)
+                }) : 'No Error'}
             </Modal.Body>
-            <Modal.Footer>
-
-                    <button className='btn btn-primary'>
-                        Save
-                    </button>
-
-            </Modal.Footer>
         </Modal>
         </div>
 
@@ -432,7 +432,8 @@ function mapDispatchToProps(dispatch, ownProps) {
     closeCollapse,
     addCollapse,
     removeCollapse,
-    init
+    init,
+    updateInvalids
 }, dispatch)
 }
 
