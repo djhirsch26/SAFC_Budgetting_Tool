@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
 
+import {DURABLE} from '../../constants'
+
 import {
   addDurable
 } from '../../actions'
@@ -41,14 +43,21 @@ class Durable extends Component {
 
   const validate = validationCreator(durable)
 
-  console.log('HERE', durable)
+function mapStateToProps(state) {
+  console.log(state)
+  return ({
+    initialValues: state.budget[DURABLE],
+  })
+}
+
 
 export default connect(
-  (state) => ({
-  }),
+  mapStateToProps,
   {addDurable}
 )(reduxForm({
 	validate,
+  enableReinitialize: true,
+  // initialValues: {"durable_goods": [{"name": 'HENRY'}]},
 	form: durable.name,
   destroyOnUnmount: false
 })(

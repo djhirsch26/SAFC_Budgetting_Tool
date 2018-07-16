@@ -4,8 +4,11 @@ import { Switch, Route } from 'react-router';
 import App from './containers/App';
 import Home from './components/Home';
 import Topbar from './components/Topbar'
-import Durable from './components/budgetSections/Durable'
-import Travel from './components/budgetSections/Travel'
+// import Durable from './components/budgetSections/Durable'
+import {durable as Durable} from './components/budgetSections/sectionGenerator'
+import {travel as Travel} from './components/budgetSections/sectionGenerator'
+
+// import Travel from './components/budgetSections/Travel'
 
 import {commonGoods} from './components/lists'
 

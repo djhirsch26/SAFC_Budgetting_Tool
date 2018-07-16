@@ -4,7 +4,8 @@ import {
   ADD_COLLAPSE,
   REMOVE_COLLAPSE,
   INIT,
-  UPDATE_INVALID
+  UPDATE_INVALID,
+  LOAD
 } from '../actions'
 
 var initialState = {init: {}, repeatError: {}}
@@ -34,6 +35,14 @@ function removeItem(array, index) {
     ];
 }
 
+function isFile(obj) {
+  return obj[0] && 'lastModifiedDate' in obj[0]
+}
+
+function isFieldArray(obj) {
+  return Array.isArray(obj) && !isFile(obj)
+}
+
 export default function(state=initialState, action) {
   // console.log('reduce: ', action)
 	switch(action.type) {
@@ -43,6 +52,29 @@ export default function(state=initialState, action) {
       temp[action.payload.field] = true
     }
     return {...state, init: temp}
+  case LOAD:
+    var temp = {}
+    var tempInit = {}
+    var budget = action.payload
+    for (var section in budget) {
+      var budgetSection = budget[section]
+      for (var question in budgetSection) {
+        if (isFieldArray(budgetSection[question])) {
+          if (section && question) {
+            console.log(question)
+            console.log(budgetSection[question])
+            if(!state[`${section}_${question}`]) {
+              state[`${section}_${question}`] = []
+            }
+            tempInit[`${section}`] = true
+            console.log(budgetSection[question].length)
+            temp[`${section}_${question}`] = new Array(budgetSection[question].length).fill(false, 0)
+          }
+        }
+      }
+    }
+    console.log({...state, ...temp, init: tempInit})
+    return {...state,...temp}
   case ADD_COLLAPSE:
     var temp = {}
     if(!state[`${action.payload.form}_${action.payload.field}`]) {

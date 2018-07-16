@@ -10,6 +10,7 @@ import {
   addTravel
 } from '../../actions'
 
+import {TRAVEL} from '../../constants'
 import {travel as jsonFile} from './travelConfig'
 import FormGenerator from './formGenerator'
 
@@ -22,7 +23,6 @@ class Travel extends Component {
     console.log("TRAVEL",values)
     this.props.addTravel(values)
     window.alert('Travel Events Saved To Budget')
-
   }
 
   render() {
@@ -42,9 +42,10 @@ class Travel extends Component {
   const validate = validationCreator(jsonFile)
 
   function mapStateToProps(state) {
-  return {
-  };
-}
+    return ({
+      initialValues: state.budget[TRAVEL],
+    })
+  }
 
 function mapDispatchToProps(dispatch) {
   return bindActionCreators({
@@ -57,6 +58,7 @@ export default connect(
   mapDispatchToProps
 )(reduxForm({
 	validate,
+  enableReinitialize: true,
 	form: jsonFile.name,
   destroyOnUnmount: false
 })(

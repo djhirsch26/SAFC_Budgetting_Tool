@@ -27,7 +27,9 @@ export const travel = {
         "label" : "Does the event meet all the following:",
         "name": "criteria",
         "type": "checkbox",
+        "pdf_label": "Meets Required Criteria?",
         "errorMessage": "Must meet the following criteria",
+        "pdf": value => value ? 'Yes' : No,
         "message": {
           "title": "",
           "list": [
@@ -62,9 +64,10 @@ export const travel = {
       },
       {
         "label" : "Miles (One Way)",
-        "name": "miles",
+        "name": "miles (one way)",
         "type": "number",
         "errorMessage": "must have some amount of miles",
+        "pdf": distance => distance + ' mi',
         "calculate": {
           "name": "max_funding",
           "function": function(value, allValues, index) {
@@ -80,7 +83,8 @@ export const travel = {
         "label": "Max Funding",
         "name": "max_funding",
         "type": "calculated",
-        "display": monetary
+        "display": monetary,
+        "pdf": price => '$' + price,
       }
       ]
     }

@@ -109,7 +109,6 @@ class FormGenerator extends Component {
           mainClass = 'form-group'
           labelClass = ''
           inputClass = 'form-control'
-          other = {...other}
           break;
       default:
           mainClass = 'form-group'
@@ -299,7 +298,7 @@ class FormGenerator extends Component {
    this.setState({show: false})
   }
 
-  checkRepeatErrors = function() {
+  checkRepeatErrors = function(e) {
     var invalidFields = []
     const jsonFile = this.props.json
     if(this.props.budget && this.props.budget[jsonFile.name]) {
@@ -409,7 +408,7 @@ class FormGenerator extends Component {
         <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
           {repeated}
           {fields}
-  			  <Button type="submit" onClick={this.checkRepeatErrors.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>Add to Budget</Button>
+  			  <Button type="submit" onClick={this.checkRepeatErrors.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>Save to Budget</Button>
   			  <Link to="/" className="btn btn-danger" style={{fontSize: '15px'}}>Cancel</Link>
           {links}
         </div>

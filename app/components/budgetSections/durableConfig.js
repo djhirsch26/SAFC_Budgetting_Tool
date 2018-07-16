@@ -1,5 +1,10 @@
 import {DURABLE} from '../../constants'
 
+import {
+  numeric,
+  monetary
+} from '../normalization'
+
 export const durable = {
   "name": DURABLE,
   "title": "Durable Goods",
@@ -17,8 +22,7 @@ export const durable = {
         "defaultValue": "HI"
         },
         {
-          "label": "Where will this item be stored",
-          "sublabel": "This must be a location on Cornell's Campus",
+          "label": "Where will this item be stored (must be on Cornell's Campus)",
           "name": "location",
           "errorMessage": "Please Enter a location"
         },
@@ -26,8 +30,17 @@ export const durable = {
           "label": "Does the good have a life of more than 1 year",
           "name": "life_span",
           "type": "checkbox",
+          "pdf_label": "Meets Required Criteria?",
+          "pdf": value => value ? 'Yes' : No,
           "defaultValue": "checked",
           "errorMessage": "Good must have a life of at least 1 year"
+        },
+        {
+          "label": "Price",
+          "name": "price",
+          "type": "number",
+          "pdf": monetary,
+          "errorMessage": "Must give price for this good"
         },
         {
           "label": "Supporting Documentation",
@@ -53,5 +66,5 @@ export const durable = {
       "label": "Commonly Accepted Durable Goods",
       "link": "durable/common"
     }
-  ]
+  ],
 }
