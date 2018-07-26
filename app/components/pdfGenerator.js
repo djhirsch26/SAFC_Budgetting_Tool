@@ -4,14 +4,15 @@ const TITLE_SIZE = 28
 const WIDTH = 8.27*72
 const HEIGHT = 11.69*72
 
-const PAGE_TOP = 20
-const PAGE_BOTTOM = HEIGHT - 20
+const PAGE_TOP = 60
+const PAGE_BOTTOM = HEIGHT - 30
 const HORIZONTAL_BUFFER = 10
 const VERTICAL_BUFFER = 10
 // const PTPERIN = 72
+
 const CENTER = WIDTH/2.0
 const RIGHT = WIDTH
-var Y_POS = TITLE_SIZE + 15
+// var Y_POS = TITLE_SIZE + 15
 
 const SUB_TITLE_SIZE = 22
 const LEFT_OFFSET = 10
@@ -19,6 +20,9 @@ const LEFT_OFFSET = 10
 const CHART_LEFT = LEFT_OFFSET * 4
 const CHART_WIDTH = WIDTH - LEFT_OFFSET*8
 const CHART_HEIGHT = 30
+
+const TITLE_LEFT = CHART_LEFT - HORIZONTAL_BUFFER
+const TITLE_WIDTH = CHART_WIDTH + 2 * HORIZONTAL_BUFFER
 
 const HEADER_SIZE = 18
 
@@ -29,10 +33,14 @@ class Spec {
   }
 }
 
+
+
 function makeTitle(jsonFile, doc, yPos) {
   doc.setFontSize(TITLE_SIZE)
   var title = jsonFile.title
   var offset = title.length/4.0*TITLE_SIZE
+  doc.setFillColor(.5,.5,0,0)
+  doc.rect(TITLE_LEFT, yPos - TITLE_SIZE, TITLE_WIDTH, CHART_HEIGHT*1.2, 'F')
   doc.text(title, CENTER, yPos, null, null, 'center')
   return yPos + TITLE_SIZE * 1.5
 }
@@ -62,38 +70,49 @@ function renderKey(question, key) {
 }
 
 function isRenderable(value) {
-  // console.log(value, typeof value)
-  // console.log(typeof value == 'string' || typeof value == 'boolean' || typeof value=='number')
   return typeof value == 'string' || typeof value == 'boolean' || typeof value=='number'
+}
+
+function renderTotal() {
+
 }
 
 
 function makeRepeat(repeatable, doc, values, yPos) {
   doc.setFontSize(SUB_TITLE_SIZE)
-  var numPages = 1
   var repeatStart = yPos
+  var total = 0
 
   values.forEach((response, index) => {
+
+    if (yPos + repeatable.values.length * CHART_HEIGHT > HEIGHT - 40) {
+      doc.addPage('a4', 1)
+      yPos = PAGE_TOP
+    }
+
     var startY = yPos
     var even = true
+
+    var is_init = false
+
     repeatable.values.forEach((question, index2) => {
-
-      if (index2==0) {
-        doc.setFillColor(0,.53,.52,.11)
-        doc.rect(CHART_LEFT-HORIZONTAL_BUFFER, startY-VERTICAL_BUFFER, CHART_WIDTH + 2*HORIZONTAL_BUFFER, CHART_HEIGHT+VERTICAL_BUFFER, 'F')
-        doc.setFillColor(0,0,0,.11)
-        var key = 'name'
-        doc.rect(CHART_LEFT, yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
-        doc.text(renderValue(question, response[key]), CENTER, yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2, null, null, 'center')
-        yPos+= CHART_HEIGHT
-      }
-
       var key = question.name
-      if(key!='name' && isRenderable(response[key])) {
+      if(key!='name' && (isRenderable(response[key]) || question.type=='calculated')) {
+        //TODO Make it so this does not render with no renderable fields
+        if (!is_init) {
+          is_init=true
+          doc.setFillColor(0,.53,.52,.11)
+          doc.rect(TITLE_LEFT, yPos-VERTICAL_BUFFER, TITLE_WIDTH, CHART_HEIGHT+VERTICAL_BUFFER, 'F')
+          doc.setFillColor(0,0,0,.11)
+          var key = 'name'
+          doc.rect(CHART_LEFT, yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
+          doc.text(renderValue(question, response[key]), CENTER, yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2, null, null, 'center')
+          yPos+= CHART_HEIGHT
+        }
 
         doc.setFillColor(0,.53,.52,.11)
-        doc.rect(CHART_LEFT-HORIZONTAL_BUFFER, yPos, CHART_WIDTH + 2*HORIZONTAL_BUFFER, CHART_HEIGHT, 'F')
-        
+        doc.rect(TITLE_LEFT, yPos, TITLE_WIDTH, CHART_HEIGHT, 'F')
+
         doc.setDrawColor(0)
         if (even) {
           doc.setFillColor(.15,0,.13,0)
@@ -103,11 +122,20 @@ function makeRepeat(repeatable, doc, values, yPos) {
         }
         even = !even
 
+        var answer = response[key]
 
+        if (question.type=='calculated') {
+          var calculate = question.function
+          answer = calculate(response)
+        }
+
+        if (question.monetary) {
+          total += parseFloat(answer)
+        }
 
         doc.rect(CHART_LEFT, yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
         doc.text(renderKey(question, key), LEFT_OFFSET*4 + 5, yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2)
-        doc.text(renderValue(question, response[key]), RIGHT - LEFT_OFFSET*6, yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
+        doc.text(renderValue(question, answer), RIGHT - LEFT_OFFSET*6, yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
         yPos+= CHART_HEIGHT
       }
     })
@@ -124,53 +152,82 @@ function makeRepeat(repeatable, doc, values, yPos) {
 
     if (index < values.length-1) {
       doc.setFillColor(0,.53,.52,.11)
-      doc.rect(CHART_LEFT-HORIZONTAL_BUFFER, yPos, CHART_WIDTH + 2*HORIZONTAL_BUFFER, CHART_HEIGHT, 'F')
+      doc.rect(TITLE_LEFT, yPos, TITLE_WIDTH, CHART_HEIGHT, 'F')
       doc.line(CHART_LEFT, endY, CHART_LEFT+CHART_WIDTH, endY)
       yPos += CHART_HEIGHT
     }
     else {
       doc.setFillColor(0,.53,.52,.11)
-      doc.rect(CHART_LEFT-HORIZONTAL_BUFFER, yPos, CHART_WIDTH + 2*HORIZONTAL_BUFFER, CHART_HEIGHT/2, 'F')
+      doc.rect(TITLE_LEFT, yPos, TITLE_WIDTH, CHART_HEIGHT/2, 'F')
       doc.line(CHART_LEFT, endY, CHART_LEFT+CHART_WIDTH, endY)
       yPos += CHART_HEIGHT/2
-    }
-
-    if (yPos + repeatable.length * CHART_HEIGHT > HEIGHT - 40) {
-      doc.addPage('a4', 1)
-      numPages++
-      yPos = 30
     }
 
 
   })
 
-
-  // doc.setFillColor(.15,0,.13,0)
-  // if (numPages>1) {
-  //   doc.roundedRect(CHART_LEFT - HORIZONTAL_BUFFER, repeatStart - VERTICAL_BUFFER, CHART_WIDTH + HORIZONTAL_BUFFER*2, PAGE_BOTTOM-repeatStart + 2*VERTICAL_BUFFER, 3, 3, 'F')
-  //   numPages--;
-  //   while(numPages>1) {
-  //     doc.roundedRect(CHART_LEFT-HORIZONTAL_BUFFER, PAGE_TOP, CHART_WIDTH + HORIZONTAL_BUFFER*2, PAGE_BOTTOM, 3, 3, 'F')
-  //   }
-  //   doc.roundedRect(CHART_LEFT-HORIZONTAL_BUFFER, PAGE_TOP, CHART_WIDTH+HORIZONTAL_BUFFER*2, yPos-PAGE_TOP, 3, 3, 'F')
-  // }
-  // else {
-  //   doc.roundedRect(CHART_LEFT-HORIZONTAL_BUFFER, repeatStart - VERTICAL_BUFFER, CHART_WIDTH+HORIZONTAL_BUFFER*2, yPos-repeatStart + 2*VERTICAL_BUFFER, 3, 3, 'F')
-  // }
+  return {yPos, total}
+}
 
 
+function makeSingle(single, doc, value, yPos) {
+  var key = single.name
+  if (single.errorMessage && !value) {
+    window.alert('Error Generating PDF, single field: ' + single.name + ' is not defined')
+    return yPos;
+  }
+  // TODO add optional check to repeatable
+  if (value==undefined) {
+    return yPos;
+  }
+  if(key!='name' && isRenderable(value)) {
+    doc.setFontSize(SUB_TITLE_SIZE)
+    doc.setFillColor(0,0,.7,0)
+    // // Render Field
+    doc.rect(TITLE_LEFT, yPos - VERTICAL_BUFFER/2, TITLE_WIDTH, CHART_HEIGHT + VERTICAL_BUFFER, 'F');
 
+
+    doc.setFillColor(0,.7,.1,0)
+    doc.rect(CHART_LEFT, yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
+    doc.text(renderKey(single, key), LEFT_OFFSET*4 + 5, yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2)
+    doc.text(renderValue(single, value), RIGHT - LEFT_OFFSET*6, yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
+  }
+
+  yPos += CHART_HEIGHT + VERTICAL_BUFFER
+  return yPos
 
 }
 
+function renderSingles(singles, doc, values, yPos) {
+  singles.forEach((question) => {
+    if (yPos + CHART_HEIGHT + VERTICAL_BUFFER > PAGE_BOTTOM) {
+      doc.addPage('a4', 1)
+      yPos = PAGE_TOP
+    }
+    yPos = makeSingle(question, doc, values[question.name], yPos)
+  })
+
+  yPos +=VERTICAL_BUFFER
+  return yPos
+}
+
 export default function makePDFGenerator(jsonFile, doc, values) {
-  var yPos = Y_POS
+  var yPos = PAGE_TOP
+  var total = 0
   yPos = makeTitle(jsonFile, doc, yPos)
   if (jsonFile.repeat){
     jsonFile.repeat.forEach((repeatable) => {
-      makeRepeat(repeatable, doc, values[repeatable.name], yPos)
+      var vals = makeRepeat(repeatable, doc, values[repeatable.name], yPos)
+      yPos = vals.yPos
+      total += vals.total
     })
   }
+
+  if (jsonFile.single){
+    yPos = renderSingles(jsonFile.single, doc, values, yPos)
+  }
+
+  // renderTotal(total)
 
   // addImage(doc)
 }

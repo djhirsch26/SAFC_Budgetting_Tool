@@ -5,5 +5,6 @@ export const LOCAL = 'local'
 export const PUBLICATION = 'publication'
 
 
+export const TOTAL = 'total'
 // BUDGET NUMBERS
 export const FUNDING_PER_MILE = 0.54

@@ -4,6 +4,7 @@ export function validationCreator(jsonFile) {
     	const errors = {};
 
     	//Validate Input
+      // console.log('calling validate with ', values)
 
       if(jsonFile.repeat) {
         jsonFile.repeat.forEach((repeatable) => {
@@ -15,7 +16,7 @@ export function validationCreator(jsonFile) {
               var itemErrors = {}
               questions.forEach((qField) => {
                   var fieldName = qField.name
-                  if(item[fieldName]==undefined || (qField.type=='checkbox' && !item[fieldName])) {
+                  if(!item[fieldName] || (qField.type=='checkbox' && !item[fieldName])) {
                     if(!errors[name]) {
                       errors[name]={}
                     }

@@ -6,10 +6,18 @@ import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
 
-import {Modal, Button} from 'react-bootstrap'
+import {Modal, Button, Input} from 'react-bootstrap'
 
 import validate from '../validate';
 import ListGenerator from '../ListGenerator.js'
+
+import {
+  TOTAL
+} from '../../constants'
+
+import {
+  monetary,
+} from '../normalization'
 
 import {snakeToTitle} from '../../utils'
 
@@ -36,7 +44,10 @@ const extractValue = function(values, field_name) {
     var objName = field_name.split('[')[0]
     var index =  field_name.split('[')[1].split(']')[0]
     var fieldName = field_name.split('.')[1]
-    return extractValue(values[objName][index], fieldName)
+    if (values[objName]) {
+      return extractValue(values[objName][index], fieldName)
+    }
+    return ''
   }
   else {
     return values[field_name]
@@ -64,6 +75,8 @@ class FormGenerator extends Component {
     super(props)
     this.state = {show: false}
   }
+
+
 
   renderField(field) {
     const {meta : {touched, error, dispatch}, values, index, jsonFile, thisVar} = field;
@@ -101,8 +114,10 @@ class FormGenerator extends Component {
           mainClass = 'form-group'
           labelClass = ''
           inputClass = 'form-control'
-          var value = values && values.values && extractValue(values.values, field.input.name) ? extractValue(values.values, field.input.name) : 0
-          value = field.display(value)
+          console.log(thisVar.props, field.input.name)
+          var value = extractValue(thisVar.props.calculated, field.input.name)
+          // var value = values && values.values && extractValue(values.values, field.input.name) ? extractValue(values.values, field.input.name) : 0
+          value = (field.display && typeof field.display == 'function') ? field.display(value) : value
           other = {...other, disabled: true, value: value }
           break;
       case 'text':
@@ -129,16 +144,6 @@ class FormGenerator extends Component {
           console.log(typeof field.message, field.message)
       }
     }
-
-    if (field.calculate) {
-      var calculate = field.calculate
-      onChange = (e) => {
-        field.input.onChange(e)
-        var name = constructName(field.input.name, calculate.name)
-        dispatch(change(jsonFile.name, name, calculate.function(e.target.value, values.values ? values.values : {}, index)))
-      }
-    }
-
 
     var input = <input
     id = {`input_${jsonFile.name}_${field.input.name}`}
@@ -243,21 +248,25 @@ class FormGenerator extends Component {
       <div style={{paddingBottom: '3%'}}>
         {
         fields.map((good,index) => {
-          var triggerText = values && values.values && values.values[fields.name] && values.values[fields.name][index] && values.values[fields.name][index].name!=undefined ? values.values[fields.name][index].name : `${questions.defaultTriggerText} ${index + 1}`
+          var triggerText = values && values.values && values.values[fields.name] && values.values[fields.name][index] && values.values[fields.name][index].name ? values.values[fields.name][index].name : `${questions.defaultTriggerText} ${index + 1}`
         return(
           <div key={index} className='collapser' style={{paddingBottom: '15px', position: 'relative'}}>
           <Collapsible trigger={triggerText} accordionPosition={index} handleTriggerClick={onTriggerClick}  open={opened[`${jsonFile.name}_${goods.fields.name}`] ? opened[`${jsonFile.name}_${goods.fields.name}`][index] : true} >
           <button className='btn btn-danger' onClick={onRemove(index)} style={{position: 'block', float: 'right', margin: '5px', marginTop: '5px'}}>{questions.removeButton}</button>
-          {questions.values.map((
-            {label,
-            name,
-            normalize,
-            type='text',
-            defaultValue='',
-            calculate,
-            display,
-            message,
-          }, index2) => {
+          {questions.values.map((question
+            , index2) => {
+
+            var {label,
+              name,
+              normalize,
+              type='text',
+              defaultValue='',
+              calculate,
+              monetary,
+              display,
+              message,
+            } = question
+
         return(
           <Field
             key={`${good}.${name}_${index2}`}
@@ -267,6 +276,7 @@ class FormGenerator extends Component {
             thisVar={thisVar}
             jsonFile={jsonFile}
             dispatch={dispatch}
+            monetary={monetary}
             display={display}
             calculate={calculate}
             normalize={normalize}
@@ -280,7 +290,7 @@ class FormGenerator extends Component {
         </div>
       )})
       }
-      <div style={{overflow: 'hidden'}}><button className='btn btn-success' type="button" style={{float: 'right'}} onClick={onAdd}>{questions.addButton}</button></div>
+      <div style={{overflow: 'hidden'}}><button className='btn btn-success' type="button" style={{float: 'right'}} onClick={onAdd}>{questions.addButton ? questions.addButton : 'Add'}</button></div>
           </div>
       </div>
     )
@@ -306,7 +316,7 @@ class FormGenerator extends Component {
       if(errors) {
         function parseErrorObject(errors, prefix) {
           for (var key in errors) {
-            if (typeof errors[key]=='string') {
+            if (typeof errors[key]=='string' && errors[key]!='') {
               invalidFields.push('Error in ' + snakeToTitle(prefix) + ': ' + snakeToTitle(key) + ' - ' + snakeToTitle(errors[key]) + '\n\n')
             }
             else if (typeof errors[key]=='object') {
@@ -330,6 +340,7 @@ class FormGenerator extends Component {
     this.props.updateInvalids(jsonFile.name, invalidFields)
     // window.alert(invalidFields)
   }
+
 
   render() {
       const jsonFile = this.props.json
@@ -375,6 +386,11 @@ class FormGenerator extends Component {
       		/>
         )})} </div> : <div/>
 
+        const total = this.props.calculated.total==undefined ? <div/> :
+        <div className='total'>
+        {<Field name='total' display={monetary} label={`Max Funding for ${snakeToTitle(jsonFile.name)}: `} thisVar={this} jsonFile={jsonFile} component={this.renderField} type='calculated'/>}
+        </div>
+
         var links = <div/>
         if(jsonFile.links) {
           links =
@@ -408,7 +424,8 @@ class FormGenerator extends Component {
         <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
           {repeated}
           {fields}
-  			  <Button type="submit" onClick={this.checkRepeatErrors.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>Save to Budget</Button>
+          {total}
+  			  <Button type="submit" onClick={this.checkRepeatErrors.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>{jsonFile.save_text ? jsonFile.save_text : 'Save'}</Button>
   			  <Link to="/" className="btn btn-danger" style={{fontSize: '15px'}}>Cancel</Link>
           {links}
         </div>

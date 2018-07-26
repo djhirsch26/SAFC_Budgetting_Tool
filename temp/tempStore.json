@@ -1,33 +1,11 @@
 {
-    "travel": {
-        "travel_events": [
-            {
-                "name": "Trip to Disney",
-                "criteria": true,
-                "proof_of_event": [
-                    {
-                        "lastModified": 1472737818000,
-                        "lastModifiedDate": "2016-09-01T13:50:18.000Z",
-                        "name": "Hirsch_Harvard Supplement Essay.pdf",
-                        "size": 137266,
-                        "type": "application/pdf"
-                    }
-                ],
-                "miles (one way)": "324",
-                "max_funding": 349.92
-            }
-        ]
-    },
-    "local": {},
-    "admin": {},
-    "publication": {},
     "durable_goods": {
         "durable_goods": [
             {
-                "name": "Tennis Racket",
-                "location": "shed",
+                "name": "Tent12",
+                "location": "Shed",
                 "life_span": true,
-                "price": "910",
+                "price": "42",
                 "supporting_documentation": [
                     {
                         "lastModified": 1472737818000,
@@ -39,16 +17,16 @@
                 ]
             },
             {
-                "name": "TRY ME",
-                "location": "asd",
+                "name": "11 Camping Equipment",
+                "location": "Shed",
                 "life_span": true,
-                "price": "435",
+                "price": "800",
                 "supporting_documentation": [
                     {
                         "lastModified": 1472737818000,
                         "lastModifiedDate": "2016-09-01T13:50:18.000Z",
-                        "name": "Science Olympiad Essay Draft 4.docx",
-                        "size": 11122,
+                        "name": "Science Olympiad Essay Draft 3.docx",
+                        "size": 11220,
                         "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     }
                 ]
@@ -58,10 +36,39 @@
             {
                 "lastModified": 1472737818000,
                 "lastModifiedDate": "2016-09-01T13:50:18.000Z",
-                "name": "Science Olympiad Essay Draft 3.docx",
-                "size": 11220,
+                "name": "Science Olympiad Essay.docx",
+                "size": 10960,
                 "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             }
+        ],
+        "remove_me": "89",
+        "optional0": "Zero",
+        "optional1": "One",
+        "optional2": "Two",
+        "optional3": "Three",
+        "optional4": "Four",
+        "optional6": "Six",
+        "optional8": "Eight"
+    },
+    "travel": {
+        "travel_events": [
+            {
+                "miles (one way)": "89",
+                "proof_of_event": [
+                    {
+                        "lastModified": 1472737818000,
+                        "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                        "name": "Harvard Update Intel Semi.pdf",
+                        "size": 96983,
+                        "type": "application/pdf"
+                    }
+                ],
+                "name": "78",
+                "criteria": true
+            }
         ]
-    }
+    },
+    "admin": {},
+    "local": {},
+    "publication": {}
 }

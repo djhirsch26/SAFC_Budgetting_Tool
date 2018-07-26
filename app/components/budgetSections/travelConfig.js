@@ -10,6 +10,7 @@ import {
 export const travel = {
   "name": "travel",
   "title": "Travel Events",
+  "save_text": "Save To Budget",
   "repeat": [
     {
       "addButton": "Add Travel Event",
@@ -68,23 +69,21 @@ export const travel = {
         "type": "number",
         "errorMessage": "must have some amount of miles",
         "pdf": distance => distance + ' mi',
-        "calculate": {
-          "name": "max_funding",
-          "function": function(value, allValues, index) {
-              if (allValues["travel_events"]) {
-                var miles = numeric(value, allValues["travel_events"][index].miles)
-                return Math.round(miles * 2 * FUNDING_PER_MILE*100)/100
-              }
-              return 0
-            }
-          }
       },
       {
         "label": "Max Funding",
         "name": "max_funding",
         "type": "calculated",
+        "monetary": true,
         "display": monetary,
-        "pdf": price => '$' + price,
+        "function": function(values, allValues, index) {
+            var miles = values['miles (one way)']
+            if (miles) {
+              return Math.round(parseFloat(miles) * 2 * FUNDING_PER_MILE*100)/100
+            }
+            return 0
+        },
+        "pdf": price => '$' + price
       }
       ]
     }

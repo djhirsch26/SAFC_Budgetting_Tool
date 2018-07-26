@@ -61,19 +61,15 @@ export default function(state=initialState, action) {
       for (var question in budgetSection) {
         if (isFieldArray(budgetSection[question])) {
           if (section && question) {
-            console.log(question)
-            console.log(budgetSection[question])
             if(!state[`${section}_${question}`]) {
               state[`${section}_${question}`] = []
             }
             tempInit[`${section}`] = true
-            console.log(budgetSection[question].length)
             temp[`${section}_${question}`] = new Array(budgetSection[question].length).fill(false, 0)
           }
         }
       }
     }
-    console.log({...state, ...temp, init: tempInit})
     return {...state,...temp}
   case ADD_COLLAPSE:
     var temp = {}

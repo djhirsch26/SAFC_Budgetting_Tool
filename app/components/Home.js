@@ -4,7 +4,7 @@ import { bindActionCreators, dispatch } from 'redux';
 import {connect} from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import {initialize} from 'redux-form'
+import {initialize, reset} from 'redux-form'
 
 import {snakeToTitle} from '../utils'
 
@@ -56,6 +56,22 @@ class Home extends Component {
     return budget
   }
 
+  prepareForRender(config, values) {
+    values.forEach(section => {
+      console.log(section)
+      // if (question.type=='calculated') {
+      //   var calculate = question.function
+      //   answer = calculate(response)
+      // }
+      //
+      // if (question.monetary) {
+      //   total += parseFloat(answer)
+      // }
+
+    })
+
+  }
+
 
   prepareBudgetToLoad(budget) {
 
@@ -72,6 +88,7 @@ class Home extends Component {
     var counter = TITLE_SIZE + 5
 
     values = this.prepareBudgetToSave(values)
+    values = this.prepareForRender(values)
 
     // for (var category in budget) {
     //   console.log(category, budget[category])
@@ -81,6 +98,8 @@ class Home extends Component {
     //   doc.text(snakeToTitle(category), CENTER-offset, counter)
     //   counter+=TITLE_SIZE+10
     // }
+
+    var durable_values = prepareForRender(durable, values[DURABLE])
 
     if (values[DURABLE]!={}) {
       makePDFGenerator(durable, doc, values[DURABLE])
@@ -121,8 +140,6 @@ class Home extends Component {
   onLoadFileSelect(filePaths) {
     if (filePaths) {
       if (filePaths.length == 1) {
-        console.log('CALL ME MAYBE')
-        console.log(filePaths[0])
         fs.readFile(filePaths[0], (err, data) => {
           if (err) {
             dialog.showErrorBox('Error Opening Requested File', err)
@@ -131,7 +148,10 @@ class Home extends Component {
           var budget = JSON.parse(data)
           this.prepareBudgetToLoad(budget)
           this.props.loadFromFile(budget)
-          this.props.initialize('budget', budget, undefined)
+          // this.props.reset('budget')
+          this.props.initialize(DURABLE, budget[DURABLE], undefined)
+          this.props.initialize(TRAVEL, budget[TRAVEL], undefined)
+
         })
       }
     }
@@ -172,7 +192,8 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return bindActionCreators({
     loadFromFile,
-    initialize
+    initialize,
+    reset
   }, dispatch);
 }
 
