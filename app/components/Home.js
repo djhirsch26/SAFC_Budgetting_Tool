@@ -15,7 +15,7 @@ import {durable} from './budgetSections/durableConfig'
 
 import {travel} from './budgetSections/travelConfig'
 
-import makePDFGenerator from './pdfGenerator'
+import PDFGenerator from './pdfGenerator'
 
 var fs = require('fs');
 
@@ -57,18 +57,53 @@ class Home extends Component {
   }
 
   prepareForRender(config, values) {
-    values.forEach(section => {
-      console.log(section)
-      // if (question.type=='calculated') {
-      //   var calculate = question.function
-      //   answer = calculate(response)
-      // }
-      //
-      // if (question.monetary) {
-      //   total += parseFloat(answer)
-      // }
+    var calculated = {...values}
+    var total = 0
+    if (config.repeat) {
+      for (var key in config.repeat) {
+        var repeatable = config.repeat[key]
+        repeatable.values.forEach((question, index) => {
+          if (question.type == 'calculated') {
+            var calculate = question.function
+            if (values[repeatable.name]) {
+              values[repeatable.name].forEach((response, index2) => {
+                var output = calculate(response, values, index2)
+                if (!calculated[`${repeatable.name}`]) {
+                  calculated[`${repeatable.name}`] = []
+                }
+                if (!calculated[`${repeatable.name}`][`${parseInt(index2)}`]) {
+                  calculated[`${repeatable.name}`][`${parseInt(index2)}`] = {}
+                }
+                var name = question.name
+                calculated[`${repeatable.name}`][`${parseInt(index2)}`][name] = output
 
-    })
+              })
+            }
+          }
+
+          if (question.monetary && values[repeatable.name]) {
+            values[repeatable.name].forEach((response) => {
+              if (response[question.name]) {
+                var price = parseFloat(response[question.name])
+                total += price
+              }
+            })
+          }
+        })
+      }
+    }
+    if (config.single) {
+      for (var key in config.single) {
+        var single = config.single[key]
+        if (single.monetary) {
+          total += parseFloat(temp[single.name])
+        }
+      }
+    }
+
+    calculated.total = total
+
+    return calculated
 
   }
 
@@ -88,32 +123,31 @@ class Home extends Component {
     var counter = TITLE_SIZE + 5
 
     values = this.prepareBudgetToSave(values)
-    values = this.prepareForRender(values)
 
-    // for (var category in budget) {
-    //   console.log(category, budget[category])
-    //   doc.setFontSize(TITLE_SIZE)
-    //   var offset = category.length/4.0*TITLE_SIZE
-    //   console.log('offset', category.length, CENTER, offset)
-    //   doc.text(snakeToTitle(category), CENTER-offset, counter)
-    //   counter+=TITLE_SIZE+10
-    // }
+    var durable_values = this.prepareForRender(durable, values[DURABLE])
+    var travel_values = this.prepareForRender(travel, values[TRAVEL])
 
-    var durable_values = prepareForRender(durable, values[DURABLE])
+    console.log(travel_values)
 
+    var generator = new PDFGenerator(doc)
     if (values[DURABLE]!={}) {
-      makePDFGenerator(durable, doc, values[DURABLE])
-      doc.addPage('a4', 1)
+      generator.makePDFGenerator(durable, durable_values)
+      generator.addPage()
     }
     if (values[TRAVEL]!={}){
-      makePDFGenerator(travel, doc, values[TRAVEL])
+      generator.makePDFGenerator(travel, travel_values)
+      generator.addPage()
     }
-    // var titled = Object.keys(budget).map(title => {
-    //   return (snakeToTitle(title))
-    // })
-    // titled.push('Hello World!')
-    // doc.text(titled, 0, counter)
-    // doc.save('Documentation')
+
+    // if (values[DURABLE]!={}) {
+    //   makePDFGenerator(durable, doc, durable_values)
+    //   doc.addPage('a4', 1)
+    // }
+    // if (values[TRAVEL]!={}){
+    //   makePDFGenerator(travel, doc, travel_values)
+    // }
+
+
     return doc
   }
 

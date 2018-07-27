@@ -41,7 +41,7 @@ function classMaker(name, config, onSubmit_) {
       }
 
       render() {
-          const {handleSubmit, calculated} = this.props;
+          var {handleSubmit, calculated} = this.props;
       		return(
           <div>
           <form onSubmit={handleSubmit(this.onSubmit.bind(this))}>
@@ -87,15 +87,16 @@ function getTotalSpent(state, selector, config, section) {
             })
           }
         }
-
-        if (question.monetary && temp[repeatable.name]) {
-          if (temp[repeatable.name]) {
-            temp[repeatable.name].forEach((response) => {
-              if (response[question.name]) {
-                var price = parseFloat(response[question.name])
-                total += price
-              }
-            })
+        else {
+          if (question.monetary && temp[repeatable.name]) {
+            if (temp[repeatable.name]) {
+              temp[repeatable.name].forEach((response) => {
+                if (response[question.name]) {
+                  var price = parseFloat(response[question.name])
+                  total += price
+                }
+              })
+            }
           }
         }
       })
@@ -128,8 +129,7 @@ function generateSTP(section, config) {
 
   return (
     function mapStateToProps(state) {
-      const calculated = getTotalSpent(state, selector, config, section)
-
+      var calculated = getTotalSpent(state, selector, config, section)
 
       return ({
         initialValues: state.budget[section],

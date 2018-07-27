@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import {connect} from 'react-redux';
-import { Field, FieldArray, reduxForm, change} from 'redux-form';
+import { Field, FieldArray, reduxForm, formValueSelector, change} from 'redux-form';
 import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
@@ -73,10 +73,14 @@ class FormGenerator extends Component {
 
   constructor(props) {
     super(props)
-    this.state = {show: false}
+    this.state = {show: false, calculated: {}}
   }
 
-
+  componentWillReceiveProps(nextProps) {
+  if (nextProps.calculated.total != this.state.calculated.total) {
+    this.setState({ calculated: nextProps.calculated });
+  }
+}
 
   renderField(field) {
     const {meta : {touched, error, dispatch}, values, index, jsonFile, thisVar} = field;
@@ -114,8 +118,7 @@ class FormGenerator extends Component {
           mainClass = 'form-group'
           labelClass = ''
           inputClass = 'form-control'
-          console.log(thisVar.props, field.input.name)
-          var value = extractValue(thisVar.props.calculated, field.input.name)
+          var value = extractValue(thisVar.state.calculated, field.input.name)
           // var value = values && values.values && extractValue(values.values, field.input.name) ? extractValue(values.values, field.input.name) : 0
           value = (field.display && typeof field.display == 'function') ? field.display(value) : value
           other = {...other, disabled: true, value: value }
@@ -386,9 +389,9 @@ class FormGenerator extends Component {
       		/>
         )})} </div> : <div/>
 
-        const total = this.props.calculated.total==undefined ? <div/> :
+        var total = this.state.calculated.total==undefined ? <div/> :
         <div className='total'>
-        {<Field name='total' display={monetary} label={`Max Funding for ${snakeToTitle(jsonFile.name)}: `} thisVar={this} jsonFile={jsonFile} component={this.renderField} type='calculated'/>}
+        {<Field name='total' display={monetary} value={this.state.calculated.total} label={`Max Funding for ${snakeToTitle(jsonFile.name)}: `} thisVar={this} jsonFile={jsonFile} component={this.renderField} type='calculated'/>}
         </div>
 
         var links = <div/>
@@ -435,7 +438,10 @@ class FormGenerator extends Component {
   	}
 }
 
+
+
 function mapStateToProps(state) {
+
   return {
     budget: state.form,
     opened: state.opener,
