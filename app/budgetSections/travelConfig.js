@@ -1,14 +1,10 @@
 import {
-  numeric,
-  monetary
-} from '../normalization'
-
-import {
+  TRAVEL,
   FUNDING_PER_MILE
-} from '../../constants'
+} from '../constants'
 
 export const travel = {
-  "name": "travel",
+  "name": TRAVEL,
   "title": "Travel Events",
   "save_text": "Save To Budget",
   "repeat": [
@@ -75,7 +71,6 @@ export const travel = {
         "name": "max_funding",
         "type": "calculated",
         "monetary": true,
-        "display": monetary,
         "function": function(values, allValues, index) {
             var miles = values['miles (one way)']
             if (miles) {
@@ -83,7 +78,6 @@ export const travel = {
             }
             return 0
         },
-        "pdf": price => '$' + price
       }
       ]
     }

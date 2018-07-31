@@ -1,4 +1,8 @@
-{
+import {
+  DURABLE
+} from '../constants'
+
+export const common = {
   "title": "Commonly Accepted Durable Goods",
   "type": "bullet",
   "list": [
@@ -59,3 +63,10 @@
     }
   ]
 }
+
+export const links = [
+  {
+    "label": "Return to Durable Goods",
+    "link": DURABLE
+  }
+]

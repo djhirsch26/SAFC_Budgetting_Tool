@@ -6,22 +6,35 @@ import { Link } from 'react-router-dom'
 
 import Collapsible from 'react-collapsible';
 
-import {DURABLE, TRAVEL} from '../../constants'
+import {snakeToTitle} from '../utils'
 
-import {snakeToTitle} from '../../utils'
-
+import {
+  DURABLE,
+  TRAVEL,
+  ADMIN,
+  LOCAL,
+  PUBLICATION,
+  LOCAL_CALC_NAME
+} from '../constants'
 
 import {
   addDurable,
-  addTravel
-} from '../../actions'
+  addTravel,
+  addAdmin,
+  addLocal
+} from '../actions'
 
-import {durable as durableConfig} from './durableConfig'
-import {travel as travelConfig} from './travelConfig'
+import {durable as durableConfig} from '../budgetSections/durableConfig'
+import {travel as travelConfig} from '../budgetSections/travelConfig'
+import {admin as adminConfig} from '../budgetSections/adminConfig'
+import {local as localConfig} from '../budgetSections/localConfig'
+
+import {speaker_calc as speakerCalc} from '../budgetInfo/speakerFunding'
+
 
 import FormGenerator from './formGenerator'
 
-import {validationCreator} from '../validate'
+import {validationCreator} from './validate'
 
 
 function classMaker(name, config, onSubmit_) {
@@ -37,11 +50,15 @@ function classMaker(name, config, onSubmit_) {
       onSubmit(values) {
         this.props.adderFunction(values)
         window.alert(snakeToTitle(name) + ' Saved To Budget')
-        this.onSubmit_(values)
+        // writeBudget()
+        if(this.onSubmit_) {
+          this.onSubmit_(values)
+        }
       }
 
       render() {
           var {handleSubmit, calculated} = this.props;
+          console.log(this.props.location)
       		return(
           <div>
           <form onSubmit={handleSubmit(this.onSubmit.bind(this))}>
@@ -106,14 +123,24 @@ function getTotalSpent(state, selector, config, section) {
     for (var key in config.single) {
       var single = config.single[key]
       temp[single.name] = selector(state, 'form', section, 'values', single.name)[single.name]
-
-      if (single.monetary) {
-        total += parseFloat(temp[single.name])
+      if (single.type == 'calculated') {
+        var calculate = single.function
+        var output = calculate(temp)
+        values[single.name] = output
+        if (single.monetary) {
+          total+=output
+        }
+      }
+      else {
+        if (single.monetary) {
+          total += parseFloat(temp[single.name])
+        }
       }
     }
   }
 
   values.total = total
+  values.max_funding = config.max ? Math.min(total, config.max) : total
 
   // console.log(total)
   return values
@@ -130,10 +157,10 @@ function generateSTP(section, config) {
   return (
     function mapStateToProps(state) {
       var calculated = getTotalSpent(state, selector, config, section)
-
       return ({
         initialValues: state.budget[section],
         calculated: calculated,
+        whole: state.budget
       })
     }
   )
@@ -150,13 +177,27 @@ function generateSection(name, adderFunction, config, onSubmit) {
       // enableReinitialize: true,
       destroyOnUnmount: false
     })(
-    classMaker(name, config, onSubmitDurable)
+    classMaker(name, config, onSubmit)
     ))
   )
 }
 
-function onSubmitDurable(values) {console.log('DURABBLE', values)}
-function onSubmitTravel(values) {console.log('TRAVEL', values)}
+function onSubmitDurable(values) {
+  // console.log('DURABBLE', values)
+}
+function onSubmitTravel(values) {
+  // console.log('TRAVEL', values)
+}
+function onSubmitAdmin(values) {
+  // console.log('TRAVEL', values)
+}
+function onSubmitLocal(values) {
+
+}
 
 export const durable = generateSection(DURABLE, addDurable, durableConfig, onSubmitDurable)
 export const travel = generateSection(TRAVEL, addTravel, travelConfig, onSubmitTravel)
+export const admin = generateSection(ADMIN, addAdmin, adminConfig, onSubmitAdmin)
+export const local = generateSection(LOCAL, addLocal, localConfig, onSubmitLocal)
+
+export const speaker_calc = generateSection(LOCAL_CALC_NAME, undefined, speakerCalc, ()=>{})

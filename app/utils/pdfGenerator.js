@@ -1,4 +1,6 @@
-import {snakeToTitle} from '../utils'
+import {snakeToTitle} from '.'
+import {monetary} from './normalization'
+
 
 const TITLE_SIZE = 28
 const WIDTH = 8.27*72
@@ -43,215 +45,235 @@ class Spec {
   }
 }
 
-
-function borderBox(doc, x, y, width, height, line_width=.5) {
-  doc.setLineWidth(line_width)
-  doc.line(x, y, x+width, y)
-  doc.line(x, y+height, x+width, y+height)
-  doc.line(x, y, x, y+height)
-  doc.line(x+width, y, x+width, y+height)
-}
-
-function setFillColor(doc, color) {
-  doc.setFillColor(color[0],color[1],color[2],color[3])
-}
-
-function makeTitle(jsonFile, doc, yPos) {
-  doc.setFontSize(TITLE_SIZE)
-  var title = jsonFile.title
-  var offset = title.length/4.0*TITLE_SIZE
-  setFillColor(doc, LIGHT_GRAY)
-  doc.rect(TITLE_LEFT, yPos - TITLE_SIZE, TITLE_WIDTH, CHART_HEIGHT*1.2, 'F')
-  doc.text(title, CENTER, yPos, null, null, 'center')
-  borderBox(doc, TITLE_LEFT, yPos- TITLE_SIZE, TITLE_WIDTH, CHART_HEIGHT*1.2)
-  return yPos + TITLE_SIZE * 1.5
-}
-
-function renderValue(question, value) {
-  if (!value) {
-    return 'Error processing ' + question.name
-  }
-  var response = snakeToTitle(''+value)
-  if (typeof question.pdf=='function') {
-    response = question.pdf(response)
+export default class PDFGenerator {
+  constructor(doc) {
+    this.doc = doc
+    this.yPos = PAGE_TOP
   }
 
-  return response
-}
-
-function renderKey(question, key) {
-  var response;
-  if (question.pdf_label) {
-    response = question.pdf_label
+  setFillColor(color) {
+    this.doc.setFillColor(color[0],color[1],color[2],color[3])
   }
-  else {
-    response = ''+key
+
+  setFontSize(size) {
+    this.doc.setFontSize(size)
   }
-  response = snakeToTitle(response)
-  return response
-}
 
-function isRenderable(value) {
-  return typeof value == 'string' || typeof value == 'boolean' || typeof value=='number'
-}
+  setLineWidth(width) {
+    this.doc.setLineWidth(width)
+  }
 
+  setDrawColor(color) {
+    this.doc.setDrawColor(color)
+  }
 
-function makeRepeat(repeatable, doc, values, yPos) {
-  doc.setFontSize(SUB_TITLE_SIZE)
-  var repeatStart = yPos
+  borderBox(x, y, width, height, line_width=.5) {
+    this.doc.setLineWidth(line_width)
+    this.doc.line(x, y, x+width, y)
+    this.doc.line(x, y+height, x+width, y+height)
+    this.doc.line(x, y, x, y+height)
+    this.doc.line(x+width, y, x+width, y+height)
+  }
 
-  values.forEach((response, index) => {
+  addPage() {
+    this.doc.addPage('a4', 1)
+    this.yPos = PAGE_TOP
+  }
 
-    if (yPos + repeatable.values.length * CHART_HEIGHT > HEIGHT - 40) {
-      doc.addPage('a4', 1)
-      yPos = PAGE_TOP
+  renderValue(question, value) {
+    if (!value) {
+      return 'Error processing ' + question.name
+    }
+    var response = snakeToTitle(''+value)
+    if (question.monetary && !question.pdf) {
+      question.pdf = monetary
+    }
+    if (typeof question.pdf=='function') {
+      response = question.pdf(response)
     }
 
-    var startY = yPos
-    var even = true
+    return response
+  }
 
-    var is_init = false
-
-    repeatable.values.forEach((question, index2) => {
-      var key = question.name
-      if(key!='name' && (isRenderable(response[key]) || question.type=='calculated')) {
-        //TODO Make it so this does not render with no renderable fields
-        if (!is_init) {
-          is_init=true
-          setFillColor(doc, LIGHT_RED)
-          doc.rect(TITLE_LEFT, yPos-VERTICAL_BUFFER, TITLE_WIDTH, CHART_HEIGHT+VERTICAL_BUFFER, 'F')
-          setFillColor(doc, LIGHT_GRAY)
-          var key = 'name'
-          doc.rect(CHART_LEFT, yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
-          doc.text(renderValue(question, response[key]), CENTER, yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2, null, null, 'center')
-          yPos+= CHART_HEIGHT
-        }
-        // Draw Top Border
-        setFillColor(doc, LIGHT_RED)
-        doc.rect(TITLE_LEFT, yPos, TITLE_WIDTH, CHART_HEIGHT, 'F')
-        // Zero Out Line Color
-        doc.setDrawColor(0)
-        //Set fill color
-        if (even) {
-          setFillColor(doc, LIGHT_GREEN)
-        }
-        else {
-          setFillColor(doc, LIGHT_BLUE)
-        }
-        //Render answer if it exists
-        var answer = response[key]
-        if (answer) {
-          even = !even
-          doc.rect(CHART_LEFT, yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
-          doc.text(renderKey(question, key), LEFT_OFFSET*4 + 5, yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2)
-          doc.text(renderValue(question, answer), RIGHT - LEFT_OFFSET*6, yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
-          yPos+= CHART_HEIGHT
-        }
-      }
-    })
-    //Box Section
-    var endY = yPos
-    doc.setLineWidth(.5)
-    doc.line(CHART_LEFT, startY+CHART_HEIGHT, CHART_LEFT+CHART_WIDTH, startY+CHART_HEIGHT)
-    borderBox(doc, CHART_LEFT, startY, CHART_WIDTH, endY-startY)
-    //Add bottom spacing
-    if (index < values.length-1) {
-      setFillColor(doc, LIGHT_RED)
-      doc.rect(TITLE_LEFT, yPos, TITLE_WIDTH, CHART_HEIGHT, 'F')
-      doc.line(CHART_LEFT, endY, CHART_LEFT+CHART_WIDTH, endY)
-      yPos += CHART_HEIGHT
+  renderKey(question, key) {
+    var response;
+    if (question.pdf_label) {
+      response = question.pdf_label
     }
     else {
-      setFillColor(doc, LIGHT_RED)
-      doc.rect(TITLE_LEFT, yPos, TITLE_WIDTH, CHART_HEIGHT/2, 'F')
-      doc.line(CHART_LEFT, endY, CHART_LEFT+CHART_WIDTH, endY)
-      yPos += CHART_HEIGHT/2
+      response = ''+key
     }
-  })
-  return yPos
-}
-
-function renderSingleBox(doc, key, value, yPos, colorInner=[0,.7,.1,0], colorOuter=[0,0,.7,0]) {
-  doc.setFontSize(SUB_TITLE_SIZE)
-  //Render Outer
-  setFillColor(doc, colorOuter)
-  doc.rect(TITLE_LEFT, yPos - VERTICAL_BUFFER/2, TITLE_WIDTH, CHART_HEIGHT + VERTICAL_BUFFER, 'F');
-  //Render Inner
-  setFillColor(doc, colorInner)
-  doc.rect(CHART_LEFT, yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
-  doc.text(key, LEFT_OFFSET*4 + 5, yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2)
-  doc.text(value, RIGHT - LEFT_OFFSET*6, yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
-  //Border Inner
-  borderBox(doc, CHART_LEFT, yPos, CHART_WIDTH, CHART_HEIGHT)
-}
-
-
-function makeSingle(single, doc, value, yPos) {
-  var key = single.name
-  if (single.errorMessage && !value) {
-    window.alert('Error Generating PDF, single field: ' + single.name + ' is not defined')
-    return yPos;
+    response = snakeToTitle(response)
+    return response
   }
-  // TODO add optional check to repeatable
-  if (value==undefined) {
-    return yPos;
+
+  isRenderable(value) {
+    return typeof value == 'string' || typeof value == 'boolean' || typeof value=='number'
   }
-  if(key!='name' && isRenderable(value)) {
-    renderSingleBox(doc, renderKey(single, key), renderValue(single, value), yPos)
-    yPos += CHART_HEIGHT + VERTICAL_BUFFER
+
+  makeTitle(jsonFile) {
+    this.setFontSize(TITLE_SIZE)
+    var title = jsonFile.title
+    var offset = title.length/4.0*TITLE_SIZE
+    this.setFillColor(LIGHT_GRAY)
+    this.doc.rect(TITLE_LEFT, this.yPos - TITLE_SIZE, TITLE_WIDTH, CHART_HEIGHT*1.2, 'F')
+    this.doc.text(title, CENTER, this.yPos, null, null, 'center')
+    this.borderBox(TITLE_LEFT, this.yPos- TITLE_SIZE, TITLE_WIDTH, CHART_HEIGHT*1.2)
+    this.yPos += TITLE_SIZE * 1.5
   }
-  return yPos
-}
 
 
-function renderSingles(singles, doc, values, yPos) {
-  var counter = 0
-  singles.forEach((question) => {
-    if (yPos + CHART_HEIGHT + VERTICAL_BUFFER > PAGE_BOTTOM) {
-      doc.addPage('a4', 1)
-      yPos = PAGE_TOP
-    }
-    if (question.name!='name' && isRenderable(values[question.name])) {
-      counter++
-      yPos = makeSingle(question, doc, values[question.name], yPos)
-    }
-  })
-  if (counter > 0) {
-    yPos +=VERTICAL_BUFFER
-  }
-  return yPos
-}
+  makeRepeat(repeatable, values) {
+    this.setFontSize(SUB_TITLE_SIZE)
+    var repeatStart = this.yPos
 
+    values.forEach((response, index) => {
 
-function renderTotal(doc, values, yPos) {
-  yPos += VERTICAL_BUFFER*2
-  // No vertical buffer at the bottom since its the lat field
-  if (yPos + CHART_HEIGHT > PAGE_BOTTOM) {
-    doc.addPage('a4', 1)
-    yPos = PAGE_TOP
-  }
-  renderSingleBox(doc, 'Total', '$' + values.total, yPos, WHITE, GREEN)
-  yPos += CHART_HEIGHT + VERTICAL_BUFFER
-  return yPos
-}
+      if (this.yPos + repeatable.values.length * CHART_HEIGHT > HEIGHT - 40) {
+        this.addPage()
+      }
 
+      var startY = this.yPos
+      var even = true
 
-export default function makePDFGenerator(jsonFile, doc, values) {
-  var yPos = PAGE_TOP
-  yPos = makeTitle(jsonFile, doc, yPos)
-  if (jsonFile.repeat){
-    jsonFile.repeat.forEach((repeatable) => {
-      if (values[repeatable.name]) {
-        yPos = makeRepeat(repeatable, doc, values[repeatable.name], yPos)
+      var is_init = false
+
+      repeatable.values.forEach((question, index2) => {
+        var key = question.name
+        if(key!='name' && (this.isRenderable(response[key]) || question.type=='calculated')) {
+          //TODO Make it so this does not render with no renderable fields
+          if (!is_init) {
+            is_init=true
+            this.setFillColor(LIGHT_RED)
+            this.doc.rect(TITLE_LEFT, this.yPos-VERTICAL_BUFFER, TITLE_WIDTH, CHART_HEIGHT+VERTICAL_BUFFER, 'F')
+            this.setFillColor(LIGHT_GRAY)
+            var key = 'name'
+            this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
+            this.doc.text(this.renderValue(question, response[key]), CENTER, this.yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2, null, null, 'center')
+            this.yPos+= CHART_HEIGHT
+          }
+          // Draw Top Border
+          this.setFillColor(LIGHT_RED)
+          this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, CHART_HEIGHT, 'F')
+          // Zero Out Line Color
+          this.setDrawColor(0)
+          //Set fill color
+          if (even) {
+            this.setFillColor(LIGHT_GREEN)
+          }
+          else {
+            this.setFillColor(LIGHT_BLUE)
+          }
+          //Render answer if it exists
+          var answer = response[key]
+          if (answer) {
+            even = !even
+            this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
+            this.doc.text(this.renderKey(question, key), LEFT_OFFSET*4 + 5, this.yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2)
+            this.doc.text(this.renderValue(question, answer), RIGHT - LEFT_OFFSET*6, this.yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
+            this.yPos+= CHART_HEIGHT
+          }
+        }
+      })
+      //Box Section
+      var endY = this.yPos
+      this.setLineWidth(.5)
+      this.doc.line(CHART_LEFT, startY+CHART_HEIGHT, CHART_LEFT+CHART_WIDTH, startY+CHART_HEIGHT)
+      this.borderBox(CHART_LEFT, startY, CHART_WIDTH, endY-startY)
+      //Add bottom spacing
+      if (index < values.length-1) {
+        this.setFillColor(LIGHT_RED)
+        this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, CHART_HEIGHT, 'F')
+        this.doc.line(CHART_LEFT, endY, CHART_LEFT+CHART_WIDTH, endY)
+        this.yPos += CHART_HEIGHT
+      }
+      else {
+        this.setFillColor(LIGHT_RED)
+        this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, CHART_HEIGHT/2, 'F')
+        this.doc.line(CHART_LEFT, endY, CHART_LEFT+CHART_WIDTH, endY)
+        this.yPos += CHART_HEIGHT/2
       }
     })
   }
-  if (jsonFile.single){
-    yPos = renderSingles(jsonFile.single, doc, values, yPos)
-  }
-  yPos = renderTotal(doc, values, yPos)
 
-  // addImage(doc)
+
+  renderSingleBox(key, value, colorInner=[0,.7,.1,0], colorOuter=[0,0,.7,0]) {
+    this.setFontSize(SUB_TITLE_SIZE)
+    //Render Outer
+    this.setFillColor(colorOuter)
+    this.doc.rect(TITLE_LEFT, this.yPos - VERTICAL_BUFFER/2, TITLE_WIDTH, CHART_HEIGHT + VERTICAL_BUFFER, 'F');
+    //Render Inner
+    this.setFillColor(colorInner)
+    this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
+    this.doc.text(key, LEFT_OFFSET*4 + 5, this.yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2)
+    this.doc.text(value, RIGHT - LEFT_OFFSET*6, this.yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
+    //Border Inner
+    this.borderBox(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT)
+  }
+
+
+  makeSingle(single, value) {
+    var key = single.name
+    if (single.errorMessage && !value) {
+      window.alert('Error Generating PDF, single field: ' + single.name + ' is not defined')
+      return;
+    }
+    // TODO add optional check to repeatable
+    if (value==undefined) {
+      return;
+    }
+    if(key!='name' && this.isRenderable(value)) {
+      this.renderSingleBox(this.renderKey(single, key), this.renderValue(single, value))
+      this.yPos += CHART_HEIGHT + VERTICAL_BUFFER
+    }
+  }
+
+
+  renderSingles(singles, values) {
+    var counter = 0
+    singles.forEach((question) => {
+      if (this.yPos + CHART_HEIGHT + VERTICAL_BUFFER > PAGE_BOTTOM) {
+        this.addPage()
+      }
+      if (question.name!='name' && this.isRenderable(values[question.name])) {
+        counter++
+        this.makeSingle(question, values[question.name])
+      }
+    })
+    if (counter > 0) {
+      this.yPos +=VERTICAL_BUFFER
+    }
+  }
+
+  renderTotal(values) {
+    this.yPos += VERTICAL_BUFFER*2
+    // No vertical buffer at the bottom since its the lat field
+    if (this.yPos + CHART_HEIGHT > PAGE_BOTTOM) {
+      this.addPage()
+    }
+    this.renderSingleBox('Total', '$' + values.total, WHITE, GREEN)
+    this.yPos += CHART_HEIGHT + VERTICAL_BUFFER
+  }
+
+  makePDFGenerator(jsonFile, values) {
+    this.makeTitle(jsonFile)
+    if (jsonFile.repeat){
+      jsonFile.repeat.forEach((repeatable) => {
+        if (values[repeatable.name]) {
+          this.makeRepeat(repeatable, values[repeatable.name])
+        }
+      })
+    }
+    this.yPos += VERTICAL_BUFFER
+    if (jsonFile.single){
+      this.renderSingles(jsonFile.single, values)
+    }
+    this.renderTotal(values)
+
+    // addImage(doc)
+  }
+
+
 }
 
 

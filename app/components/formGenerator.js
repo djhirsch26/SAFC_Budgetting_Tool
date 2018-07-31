@@ -8,18 +8,17 @@ import Collapsible from 'react-collapsible';
 
 import {Modal, Button, Input} from 'react-bootstrap'
 
-import validate from '../validate';
-import ListGenerator from '../ListGenerator.js'
+import ListGenerator from './ListGenerator.js'
 
 import {
   TOTAL
-} from '../../constants'
+} from '../constants'
 
 import {
   monetary,
-} from '../normalization'
+} from '../utils/normalization'
 
-import {snakeToTitle} from '../../utils'
+import {snakeToTitle} from '../utils'
 
 import {
   openCollapse,
@@ -28,7 +27,7 @@ import {
   removeCollapse,
   init,
   updateInvalids
-} from '../../actions'
+} from '../actions'
 
 
 const isEmpty = function(obj) {
@@ -77,7 +76,7 @@ class FormGenerator extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-  if (nextProps.calculated.total != this.state.calculated.total) {
+  if (nextProps.calculated !== this.state.calculated) {
     this.setState({ calculated: nextProps.calculated });
   }
 }
@@ -119,8 +118,19 @@ class FormGenerator extends Component {
           labelClass = ''
           inputClass = 'form-control'
           var value = extractValue(thisVar.state.calculated, field.input.name)
+          // If its a number, cap the value at two decimal places
+          if (!isNaN(parseFloat(value))) {
+            value = Math.round(value*100)/100
+          }
+          if (field.monetary && !field.display) {
+            value = monetary(value)
+          }
+          else {
+            value = (field.display && typeof field.display == 'function') ? field.display(value) : value
+          }
+          // Make sure components are automatically set to controlled
+          value = value!=undefined ? value : ''
           // var value = values && values.values && extractValue(values.values, field.input.name) ? extractValue(values.values, field.input.name) : 0
-          value = (field.display && typeof field.display == 'function') ? field.display(value) : value
           other = {...other, disabled: true, value: value }
           break;
       case 'text':
@@ -185,7 +195,7 @@ class FormGenerator extends Component {
     }
 
     return(
-      <div style={{paddingTop: '10px', marginBottom: '15px'}}>
+      <div style={{paddingTop: '10px', marginBottom: '15px', ...field.style}}>
         <div className={mainClass} style={{margin: 0, ...extraStyle}}>
           {inpLab}
           {extraField}
@@ -344,6 +354,10 @@ class FormGenerator extends Component {
     // window.alert(invalidFields)
   }
 
+  onSubmit() {
+    this.checkRepeatErrors()
+  }
+
 
   render() {
       const jsonFile = this.props.json
@@ -373,7 +387,7 @@ class FormGenerator extends Component {
       : <div/>
 
       const fields = jsonFile.single && jsonFile.single.length!=0 ?
-      <div className='singleFields'>
+      <div className='singleFields' style={{marginBottom: '40px'}}>
       {jsonFile.single.map(({label, name, type='text'}, index2) => {
         return(
           <Field
@@ -382,6 +396,7 @@ class FormGenerator extends Component {
       			name={name}
             type={type}
             jsonFile={jsonFile}
+            monetary={monetary}
             dispatch={this.props.dispatch}
             values={this.props.budget[jsonFile.name]}
             thisVar={this}
@@ -389,10 +404,24 @@ class FormGenerator extends Component {
       		/>
         )})} </div> : <div/>
 
-        var total = this.state.calculated.total==undefined ? <div/> :
-        <div className='total'>
-        {<Field name='total' display={monetary} value={this.state.calculated.total} label={`Max Funding for ${snakeToTitle(jsonFile.name)}: `} thisVar={this} jsonFile={jsonFile} component={this.renderField} type='calculated'/>}
-        </div>
+        var total;
+        var max_funding;
+        if (this.state.calculated.total==undefined) {
+          total = <div/>
+        }
+        else {
+          var total_label = `Total Requested for ${snakeToTitle(jsonFile.name)}: `
+          var total_requested = this.state.calculated.total;
+          total = <div className='total'>
+          {<Field name='total' style={{paddingBottom: 0, marginTop: 10, marginBottom: 5}} monetary={true} value={total_requested} label={total_label} thisVar={this} jsonFile={jsonFile} component={this.renderField} type='calculated'/>}
+          </div>
+
+          var max_label = `Max Approved for ${snakeToTitle(jsonFile.name)}: `
+          var max_approved = this.state.calculated.total;
+          var max_funding = <div className='max_approved'>
+          {<Field name='max_funding' style={{paddingTop: 0, marginTop: 0}} monetary={true} value={max_approved} label={max_label} thisVar={this} jsonFile={jsonFile} component={this.renderField} type='calculated'/>}
+          </div>
+        }
 
         var links = <div/>
         if(jsonFile.links) {
@@ -400,6 +429,8 @@ class FormGenerator extends Component {
           <div style={{marginTop: '10px', border: 'solid 1px', marginBottom: '5px'}}>
           <h4 style={{textAlign: 'center', textDecoration: 'underline', verticalAlign: 'center'}}> Useful Links </h4>
           {jsonFile.links.map(({label, link}) => {
+            // Convert link to href
+            link = '/' + link
             return (
               <div key={label}><Link className='btn btn-secondary btn-link btn-block' style={{fontSize: '15px'}} to={link}>{label}</Link></div>
             )
@@ -421,20 +452,36 @@ class FormGenerator extends Component {
         </Modal>
         </div>
 
-  		return(
-      <div>
-        <div className='lower-page'>
-        <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
-          {repeated}
-          {fields}
-          {total}
-  			  <Button type="submit" onClick={this.checkRepeatErrors.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>{jsonFile.save_text ? jsonFile.save_text : 'Save'}</Button>
-  			  <Link to="/" className="btn btn-danger" style={{fontSize: '15px'}}>Cancel</Link>
-          {links}
-        </div>
-        {modal}
-      </div>
-  		);
+
+        if (jsonFile.isCalculator) {
+          return(
+            <div>
+              <div className='lower-page'>
+              <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
+              {repeated}
+              {fields}
+              {links}
+              </div>
+            </div>)
+        }
+        else {
+          return(
+          <div>
+            <div className='lower-page'>
+            <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
+              {repeated}
+              {fields}
+              {total}
+              {max_funding}
+              <Button type="submit" onClick={this.onSubmit.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>{jsonFile.save_text ? jsonFile.save_text : 'Save'}</Button>
+              <Link to="/" className="btn btn-danger" style={{fontSize: '15px'}}>Cancel</Link>
+              {links}
+            </div>
+            {modal}
+          </div>
+          );
+        }
+
   	}
 }
 

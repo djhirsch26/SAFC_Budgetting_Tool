@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import {connect} from 'react-redux';
 
+import { Link } from 'react-router-dom'
+
+
 class ListGenerator extends Component {
 
   constructor(props) {
@@ -9,6 +12,8 @@ class ListGenerator extends Component {
   }
 
   renderList({list, title, type}, depth, defaultType='bullet') {
+
+    if (!list) return;
     switch(depth) {
 
       case 0:
@@ -28,9 +33,9 @@ class ListGenerator extends Component {
         return (
           <div style={{marginBottom: '15px'}}>
             <div className='page-title text-center' style={{marginBottom: '20px'}}>
-              <h1>
+              <h2>
               {title ? title : 'Enter Title'}
-              </h1>
+              </h2>
             </div>
             {list}
           </div>
@@ -57,9 +62,9 @@ class ListGenerator extends Component {
         return (
           <div style={{marginBottom: '15px'}}>
             <div className='page-title text-center' style={{marginBottom: '2px'}}>
-              <h2 style={{fontSize: '22px'}}>
+              <h3>
               {title ? title : 'Enter Title'}
-              </h2>
+              </h3>
             </div>
             {list}
           </div>
@@ -96,9 +101,28 @@ class ListGenerator extends Component {
 
     var depth = this.props.depth ? this.props.depth : 0
     var className = this.props.depth && this.props.depth >= 2 ? '' : 'lower-page'
+
+
+    var links = <div/>;
+    console.log(this.props)
+    if (this.props.links) {
+      links =
+      <div style={{marginTop: '40px', border: 'solid 1px', marginBottom: '5px'}}>
+      <h4 style={{textAlign: 'center', textDecoration: 'underline', verticalAlign: 'center'}}> Useful Links </h4>
+      {this.props.links.map(({label, link}) => {
+        // Convert link to href
+        link = '/' + link
+        return (
+          <div key={label}><Link className='btn btn-secondary btn-link btn-block' style={{fontSize: '15px'}} to={link}>{label}</Link></div>
+        )
+      })}
+      </div>
+    }
+
     return (
       <div className={className}>
         {this.renderList(this.props.list, depth, this.props.list.type)}
+        {links}
       </div>
     );
   }
