@@ -1,6 +1,7 @@
 import {
   LOCAL,
-  LOCAL_CALC
+  LOCAL_CALC,
+  LOCAL_FAQ
 } from '../constants'
 
 export const local = {
@@ -17,7 +18,13 @@ export const local = {
         {
         "label" : "Name of Expense",
         "name": "name",
+        "max": 60,
         "errorMessage": "Enter a name for this item",
+        },
+        {
+          "label": "Description",
+          "name": "description",
+          "type": "textarea"
         },
         {
           "label": "Price",
@@ -34,6 +41,10 @@ export const local = {
     {
       "label": "Speaker Funding Calculator",
       "link": LOCAL_CALC
+    },
+    {
+      "label": "Local FAQ",
+      "link": LOCAL_FAQ
     }
   ],
 }

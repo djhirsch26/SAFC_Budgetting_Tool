@@ -35,12 +35,9 @@ function removeItem(array, index) {
     ];
 }
 
-function isFile(obj) {
-  return obj[0] && 'lastModifiedDate' in obj[0]
-}
-
-function isFieldArray(obj) {
-  return Array.isArray(obj) && !isFile(obj)
+function isFieldArray(section, obj) {
+  console.log(section, obj)
+  return obj[0] && typeof obj[0] != 'string'
 }
 
 export default function(state=initialState, action) {
@@ -59,7 +56,7 @@ export default function(state=initialState, action) {
     for (var section in budget) {
       var budgetSection = budget[section]
       for (var question in budgetSection) {
-        if (isFieldArray(budgetSection[question])) {
+        if (isFieldArray(section, budgetSection[question])) {
           if (section && question) {
             if(!state[`${section}_${question}`]) {
               state[`${section}_${question}`] = []
@@ -70,6 +67,7 @@ export default function(state=initialState, action) {
         }
       }
     }
+    console.log({...state,...temp})
     return {...state,...temp}
   case ADD_COLLAPSE:
     var temp = {}

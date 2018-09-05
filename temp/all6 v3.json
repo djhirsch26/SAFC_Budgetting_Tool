@@ -7,12 +7,24 @@
                 "life_span": true,
                 "price": "567",
                 "supporting_documentation": [
-                    "/Users/daniel/Documents/College Application Sheets/Harvard/Harvard Supplement PDF.pdf"
+                    {
+                        "lastModified": 1472737818000,
+                        "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                        "name": "Hirsch_Harvard Supplement Essay.pdf",
+                        "size": 137266,
+                        "type": "application/pdf"
+                    }
                 ]
             }
         ],
         "last_3_years_of_goods": [
-            "/Users/daniel/Documents/College Application Sheets/Harvard/Hirsch_Harvard Supplement Essay.pdf"
+            {
+                "lastModified": 1472737818000,
+                "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                "name": "Harvard Update Intel Semi.pdf",
+                "size": 96983,
+                "type": "application/pdf"
+            }
         ]
     },
     "travel": {
@@ -21,7 +33,13 @@
                 "name": "ROAR",
                 "criteria": true,
                 "proof_of_event": [
-                    "/Users/daniel/Documents/College Application Sheets/Harvard/Harvard PDF.pdf"
+                    {
+                        "lastModified": 1472737816000,
+                        "lastModifiedDate": "2016-09-01T13:50:16.000Z",
+                        "name": "Daniel Hirsch Intel Semifinalist Update.pdf",
+                        "size": 665137,
+                        "type": "application/pdf"
+                    }
                 ],
                 "miles (one way)": "34",
                 "max_funding": 36.72
@@ -51,13 +69,25 @@
             {
                 "critirea": true,
                 "name": "GARGLE",
-                "copies": "239",
+                "copies": "23",
                 "price": "345",
                 "price_quote": [
-                    "/Users/daniel/Documents/College Application Sheets/Harvard/Hirsch_Harvard Supplement Essay.pdf"
+                    {
+                        "lastModified": 1472737818000,
+                        "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                        "name": "Harvard Supplement Essay.pdf",
+                        "size": 137286,
+                        "type": "application/pdf"
+                    }
                 ],
                 "past_copy": [
-                    "/Users/daniel/Documents/College Application Sheets/Harvard/Harvard PDF.pdf"
+                    {
+                        "lastModified": 1472737818000,
+                        "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                        "name": "Science Olympiad Essay Draft 3.docx",
+                        "size": 11220,
+                        "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    }
                 ]
             }
         ]

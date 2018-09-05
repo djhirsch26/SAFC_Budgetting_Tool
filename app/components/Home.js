@@ -10,7 +10,14 @@ import {snakeToTitle} from '../utils'
 
 import {loadFromFile} from '../actions'
 
-import {DURABLE, TRAVEL} from '../constants'
+import {
+  ADMIN,
+  DURABLE,
+  LOCAL,
+  TRAVEL,
+  PUBLICATION,
+  GENERAL
+} from '../constants'
 
 import {durable} from '../budgetSections/durableConfig'
 import {travel} from '../budgetSections/travelConfig'
@@ -37,8 +44,12 @@ class Home extends Component {
           var budget = JSON.parse(data)
           this.props.loadFromFile(budget)
           // this.props.reset('budget')
+          this.props.initialize(GENERAL, budget[GENERAL], undefined)
+          this.props.initialize(ADMIN, budget[ADMIN], undefined)
           this.props.initialize(DURABLE, budget[DURABLE], undefined)
+          this.props.initialize(LOCAL, budget[LOCAL], undefined)
           this.props.initialize(TRAVEL, budget[TRAVEL], undefined)
+          this.props.initialize(PUBLICATION, budget[PUBLICATION], undefined)
 
         })
       }
@@ -67,7 +78,7 @@ class Home extends Component {
           <div className='btn-group'>
             <div><LinkButton text='Create a New Budget' link={`/${DURABLE}`}/></div>
             <button onClick={()=> {this.loadFromFile()}}>Edit/View An Existing Budget</button>
-            <button onClick={()=> {this.make_pdf(this.props.budget)}}>GENERATE PDF!</button>
+            <button onClick={()=> {this.make_pdf(this.props.budget)}}>REMOVE ME!</button>
             <button onClick={()=> {this.save_pdf(this.props.budget)}}>SAVE PDF!</button>
           </div>
         </div>

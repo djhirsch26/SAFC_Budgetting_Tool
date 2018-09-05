@@ -18,7 +18,13 @@ export const travel = {
         "label" : "Name of Event",
         "name": "name",
         "type": "text",
+        "max": 60,
         "errorMessage": "Enter a name for this event"
+      },
+      {
+        "label": "Description",
+        "name": "description",
+        "type": "textarea"
       },
       {
         "label" : "Does the event meet all the following:",
@@ -40,14 +46,17 @@ export const travel = {
         }
       },
       {
-        "label": "Price Quote (if requesting registration fees)",
+        "label": "Price Quote (Required only if requesting registration fees)",
         "name": "price_quote",
-        "type": "file"
+        "type": "file",
+        "accept": "application/pdf",
+
       },
       {
-        "label": "Proof of Event (Must Include)",
+        "label": "Proof of Event (PDF) (Required)",
         "name": "proof_of_event",
         "type": "file",
+        "accept": "application/pdf",
         "errorMessage": "Must have proof of event",
         "message": {
           "title": "",

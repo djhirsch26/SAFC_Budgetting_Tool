@@ -8,7 +8,7 @@ export const admin = {
   "name": ADMIN,
   "title": "Administrative Expenses",
   "save_text": "Save To Budget",
-  "max": 200,
+  "max": ADMIN_CAP,
   "repeat": [
     {
       "addButton": "Add Administrative Expense",
@@ -18,8 +18,14 @@ export const admin = {
       "values": [
         {
         "label" : "Name of Expense",
+        "max": 60,
         "name": "name",
         "errorMessage": "Enter a name for this expense",
+        },
+        {
+          "label": "Description",
+          "name": "description",
+          "type": "textarea"
         },
         {
           "label": "Price",

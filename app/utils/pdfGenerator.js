@@ -1,8 +1,14 @@
 import {snakeToTitle} from '.'
 import {monetary} from './normalization'
 
+import {
+  SEMESTER,
+  SECTIONS
+} from '../constants'
 
 const TITLE_SIZE = 28
+const COVER_PAGE_SIZE = 30
+const COVER_PAGE_SUB_SIZE = 24
 const WIDTH = 8.27*72
 const HEIGHT = 11.69*72
 
@@ -20,6 +26,8 @@ const SUB_TITLE_SIZE = 22
 const LEFT_OFFSET = 10
 
 const CHART_LEFT = LEFT_OFFSET * 4
+const CHART_TEXT_LEFT = CHART_LEFT + 5
+const CHART_TEXT_RIGHT = RIGHT - LEFT_OFFSET*6
 const CHART_WIDTH = WIDTH - LEFT_OFFSET*8
 const CHART_HEIGHT = 30
 
@@ -27,7 +35,12 @@ const TITLE_LEFT = CHART_LEFT - HORIZONTAL_BUFFER
 const TITLE_WIDTH = CHART_WIDTH + 2 * HORIZONTAL_BUFFER
 
 const HEADER_SIZE = 18
+const DESC_SIZE = 18
+const DESC_TEXT_VERTICAL = DESC_SIZE + VERTICAL_BUFFER*DESC_SIZE/SUB_TITLE_SIZE/2
+const DESC_HEIGHT = 30
 
+
+// Fill Colors
 const PINK = [0,.7,.1,0]
 const PURPLE = [.5,.5,0,0]
 const YELLOW = [0,0,.7,0]
@@ -37,6 +50,15 @@ const LIGHT_RED = [0,.53,.52,.11]
 const LIGHT_GREEN = [.15,0,.13,0]
 const LIGHT_BLUE = [.23,0,0,0]
 const LIGHT_GRAY = [0,0,0,.11]
+const LAVENDER = [.09,.2,0,0]
+
+
+// Text Color
+const TEXT_GREEN = [60, 168, 110]
+const TEXT_RED = [255, 81, 58]
+const TEXT_BLACK = [0,0,0]
+
+const NON_RENDER_KEYS = ['name', 'description']
 
 class Spec {
   constructor(x,y) {
@@ -49,6 +71,7 @@ export default class PDFGenerator {
   constructor(doc) {
     this.doc = doc
     this.yPos = PAGE_TOP
+    this.documentationQueue = []
   }
 
   setFillColor(color) {
@@ -59,12 +82,20 @@ export default class PDFGenerator {
     this.doc.setFontSize(size)
   }
 
+  setFontType(type) {
+    this.doc.setFontType(type)
+  }
+
   setLineWidth(width) {
     this.doc.setLineWidth(width)
   }
 
   setDrawColor(color) {
     this.doc.setDrawColor(color)
+  }
+
+  setTextColor(color) {
+    this.doc.setTextColor(color[0],color[1],color[2])
   }
 
   borderBox(x, y, width, height, line_width=.5) {
@@ -91,7 +122,6 @@ export default class PDFGenerator {
     if (typeof question.pdf=='function') {
       response = question.pdf(response)
     }
-
     return response
   }
 
@@ -140,21 +170,36 @@ export default class PDFGenerator {
 
       repeatable.values.forEach((question, index2) => {
         var key = question.name
-        if(key!='name' && (this.isRenderable(response[key]) || question.type=='calculated')) {
+        if(!NON_RENDER_KEYS.includes(key) && (this.isRenderable(response[key]) || question.type=='calculated')) {
+
           //TODO Make it so this does not render with no renderable fields
           if (!is_init) {
             is_init=true
             this.setFillColor(LIGHT_RED)
             this.doc.rect(TITLE_LEFT, this.yPos-VERTICAL_BUFFER, TITLE_WIDTH, CHART_HEIGHT+VERTICAL_BUFFER, 'F')
             this.setFillColor(LIGHT_GRAY)
-            var key = 'name'
+            var name_key = 'name'
             this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
-            this.doc.text(this.renderValue(question, response[key]), CENTER, this.yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2, null, null, 'center')
+            this.doc.text(snakeToTitle(''+response[name_key]), CENTER, this.yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2, null, null, 'center')
             this.yPos+= CHART_HEIGHT
+
+            this.setFontSize(DESC_SIZE)
+            var desc_key = 'description'
+            if (response[desc_key]) {
+              this.setFillColor(LIGHT_RED)
+              var textLines = this.doc.splitTextToSize(response[desc_key], CHART_TEXT_RIGHT-CHART_TEXT_LEFT)
+              var desc_height = DESC_SIZE * textLines.length + VERTICAL_BUFFER
+              this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, desc_height+VERTICAL_BUFFER, 'F')
+              this.setFillColor(LIGHT_BLUE)
+              this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, desc_height, 'F');
+              this.doc.text(textLines, CHART_TEXT_LEFT, this.yPos + DESC_TEXT_VERTICAL)
+              this.yPos+= desc_height
+            }
           }
+
           // Draw Top Border
           this.setFillColor(LIGHT_RED)
-          this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, CHART_HEIGHT, 'F')
+          this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, DESC_HEIGHT, 'F')
           // Zero Out Line Color
           this.setDrawColor(0)
           //Set fill color
@@ -166,13 +211,18 @@ export default class PDFGenerator {
           }
           //Render answer if it exists
           var answer = response[key]
+
           if (answer) {
             even = !even
-            this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
-            this.doc.text(this.renderKey(question, key), LEFT_OFFSET*4 + 5, this.yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2)
-            this.doc.text(this.renderValue(question, answer), RIGHT - LEFT_OFFSET*6, this.yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
-            this.yPos+= CHART_HEIGHT
+            this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, DESC_HEIGHT, 'F');
+            this.doc.text(this.renderKey(question, key), CHART_TEXT_LEFT, this.yPos + DESC_TEXT_VERTICAL)
+            this.doc.text(this.renderValue(question, answer), CHART_TEXT_RIGHT, this.yPos + DESC_TEXT_VERTICAL, null, null, 'right')
+            this.yPos+= DESC_HEIGHT
+            this.setTextColor(TEXT_BLACK)
           }
+        }
+        else if (question.type=='file' && response[key]) {
+          this.documentationQueue.concat(response[key])
         }
       })
       //Box Section
@@ -183,15 +233,15 @@ export default class PDFGenerator {
       //Add bottom spacing
       if (index < values.length-1) {
         this.setFillColor(LIGHT_RED)
-        this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, CHART_HEIGHT, 'F')
+        this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, DESC_HEIGHT, 'F')
         this.doc.line(CHART_LEFT, endY, CHART_LEFT+CHART_WIDTH, endY)
-        this.yPos += CHART_HEIGHT
+        this.yPos += DESC_HEIGHT
       }
       else {
         this.setFillColor(LIGHT_RED)
-        this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, CHART_HEIGHT/2, 'F')
+        this.doc.rect(TITLE_LEFT, this.yPos, TITLE_WIDTH, DESC_HEIGHT/2, 'F')
         this.doc.line(CHART_LEFT, endY, CHART_LEFT+CHART_WIDTH, endY)
-        this.yPos += CHART_HEIGHT/2
+        this.yPos += DESC_HEIGHT/2
       }
     })
   }
@@ -205,8 +255,8 @@ export default class PDFGenerator {
     //Render Inner
     this.setFillColor(colorInner)
     this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT, 'F');
-    this.doc.text(key, LEFT_OFFSET*4 + 5, this.yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2)
-    this.doc.text(value, RIGHT - LEFT_OFFSET*6, this.yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
+    this.doc.text(key, CHART_TEXT_LEFT, this.yPos + HEADER_SIZE + (CHART_HEIGHT-HEADER_SIZE)/2)
+    this.doc.text(value, CHART_TEXT_RIGHT, this.yPos + HEADER_SIZE + (30-HEADER_SIZE)/2, null, null, 'right')
     //Border Inner
     this.borderBox(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT)
   }
@@ -245,6 +295,10 @@ export default class PDFGenerator {
     }
   }
 
+  combinePDFs() {
+    console.log(this.documentationQueue)
+  }
+
   renderTotal(values) {
     this.yPos += VERTICAL_BUFFER*2
     // No vertical buffer at the bottom since its the lat field
@@ -253,6 +307,55 @@ export default class PDFGenerator {
     }
     this.renderSingleBox('Total', '$' + values.total, WHITE, GREEN)
     this.yPos += CHART_HEIGHT + VERTICAL_BUFFER
+  }
+
+  makeTitlePage(jsonFile, configs, values) {
+    this.setFontSize(COVER_PAGE_SIZE)
+    this.yPos = PAGE_TOP
+    this.doc.text(values['organization_name'], CENTER, this.yPos, null, null, 'center')
+    this.yPos+= COVER_PAGE_SIZE*1.5
+    this.setFontSize(COVER_PAGE_SUB_SIZE)
+    this.doc.text(SEMESTER + ' Budget', CENTER, this.yPos, null, null, 'center')
+    this.yPos += COVER_PAGE_SUB_SIZE*1.5
+    this.doc.text(values['organization_tier'], CENTER, this.yPos, null, null, 'center')
+    this.yPos += COVER_PAGE_SUB_SIZE*1.5
+    this.doc.text('Max Funding: $'+ values['tier_cap'], CENTER, this.yPos, null, null, 'center')
+    this.yPos += COVER_PAGE_SUB_SIZE*1.5
+
+    // Place buffer
+    this.yPos += 50
+
+    //Make Table Header
+    const CENTER_BUFFER = 5
+    this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT)
+    this.setFontType('bold')
+    this.doc.text('Budget Section', CHART_TEXT_LEFT, this.yPos + CHART_HEIGHT - CENTER_BUFFER)
+    this.doc.text('Requested', CHART_TEXT_RIGHT, this.yPos + CHART_HEIGHT - CENTER_BUFFER, null, null, 'right')
+    this.setFontType('normal')
+    this.yPos+=CHART_HEIGHT
+    SECTIONS.forEach(section => {
+      this.setTextColor(TEXT_BLACK)
+      this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT)
+      if (configs[section].max && values[section + '_total'] > configs[section].max) {
+        this.setTextColor(TEXT_RED)
+      }
+      this.doc.text(snakeToTitle(section), CHART_TEXT_LEFT, this.yPos + CHART_HEIGHT - CENTER_BUFFER)
+      this.doc.text('$' + values[section + '_total'], CHART_TEXT_RIGHT, this.yPos + CHART_HEIGHT - CENTER_BUFFER, null, null, 'right')
+      this.yPos+=CHART_HEIGHT
+    })
+    this.doc.rect(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT)
+    if (values['total'] > values['tier_cap']) {
+      this.setTextColor(TEXT_RED)
+    }
+    else {
+      this.setTextColor(TEXT_GREEN)
+    }
+    this.borderBox(CHART_LEFT, this.yPos, CHART_WIDTH, CHART_HEIGHT, 2)
+    this.doc.text(snakeToTitle('Total'), CHART_TEXT_LEFT, this.yPos + CHART_HEIGHT - CENTER_BUFFER)
+    this.doc.text('$' + values['total'], CHART_TEXT_RIGHT, this.yPos + CHART_HEIGHT - CENTER_BUFFER, null, null, 'right')
+    this.yPos+=CHART_HEIGHT
+    this.setTextColor(TEXT_BLACK)
+
   }
 
   makePDFGenerator(jsonFile, values) {

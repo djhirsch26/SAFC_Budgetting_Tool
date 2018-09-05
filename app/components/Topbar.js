@@ -6,7 +6,8 @@ import {
   TRAVEL,
   ADMIN,
   PUBLICATION,
-  LOCAL
+  LOCAL,
+  GENERAL
 } from '../constants'
 
 import LinkButton from './LinkButton'
@@ -16,9 +17,10 @@ export default class Topbar extends Component {
   render() {
     return (
       <div className="topbar">
+      <Link to={'/'} style={{textDecoration: 'none'}}><i className="fa fa-home" style={{color: 'white', fontSize: 28, float: 'left', marginLeft: 30, marginTop: 10}}/></Link>
       <h2 style={{marginBottom: '10px'}}>Welcome to the SAFC</h2>
       <div className='buttons'>
-        <div className='topButton'><LinkButton className='topLinkButton' text='Home' link={`/`}/></div>
+        <div className='topButton'><LinkButton className='topLinkButton' text='General' link={`/${GENERAL}`}/></div>
         <div className='topButton'><LinkButton className='topLinkButton' text='Administrative' link={`/${ADMIN}`}/></div>
         <div className='topButton'><LinkButton className='topLinkButton' text='Durable' link={`/${DURABLE}`}/></div>
         <div className='topButton'><LinkButton className='topLinkButton' text='Local' link={`/${LOCAL}`}/></div>

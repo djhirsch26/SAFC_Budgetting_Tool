@@ -4,14 +4,20 @@ import {connect} from 'react-redux';
 import { Field, FieldArray, reduxForm, formValueSelector, change} from 'redux-form';
 import { Link } from 'react-router-dom'
 
+const {dialog} = require('electron').remote;
+const path = require('path');
+
 import Collapsible from 'react-collapsible';
 
 import {Modal, Button, Input} from 'react-bootstrap'
+import BootstrapTable from 'react-bootstrap-table-next';
 
 import ListGenerator from './ListGenerator.js'
 
 import {
-  TOTAL
+  TOTAL,
+  CALCULATOR,
+  GENERAL
 } from '../constants'
 
 import {
@@ -48,6 +54,14 @@ const extractValue = function(values, field_name) {
     }
     return ''
   }
+  else if(field_name.includes('.')) {
+    var splits = field_name.split('.')
+    var objName = splits[0]
+    var fieldName = splits[1]
+    if (values[objName]) {
+      return extractValue(values[objName], fieldName)
+    }
+  }
   else {
     return values[field_name]
   }
@@ -76,14 +90,14 @@ class FormGenerator extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-  if (nextProps.calculated !== this.state.calculated) {
+  if (nextProps.calculated !== this.state.calculated || (nextProps.calculated.totals && nextProps.calculated.totals!==this.state.calculated.totals)) {
     this.setState({ calculated: nextProps.calculated });
   }
 }
 
   renderField(field) {
-    const {meta : {touched, error, dispatch}, values, index, jsonFile, thisVar} = field;
-    const classNhame = `form-group budgetField ${touched && error ? "has-danger" : ""}`;
+    const {meta : {touched, error, dispatch}, values, accept, inline, index, jsonFile, thisVar} = field;
+    const className = `form-group budgetField ${touched && error ? "has-danger" : ""}`;
     var mainClass;
     var labelClass;
     var inputClass;
@@ -97,14 +111,10 @@ class FormGenerator extends Component {
     switch(field.type) {
       case 'file':
           mainClass = 'form-group row'
-          labelClass = 'col-form-label col-sm-6'
+          labelClass = 'col-form-label col-sm-4'
           inputClass = 'col-sm-6'
-          onChange = (e) => {
-            e.preventDefault();
-            dispatch(change(jsonFile.name, field.input.name, [...e.target.files]))
-          }
           inpLabDivClass = 'artificialFile'
-          other={checked: field.input.value}
+          other={checked: field.input.value, accept: field.accept}
           extraField=<Field name={field.input.name} component='input' type="hidden"/>
           break;
       case 'checkbox':
@@ -117,6 +127,7 @@ class FormGenerator extends Component {
           mainClass = 'form-group'
           labelClass = ''
           inputClass = 'form-control'
+          // inputClass='form-control'
           var value = extractValue(thisVar.state.calculated, field.input.name)
           // If its a number, cap the value at two decimal places
           if (!isNaN(parseFloat(value))) {
@@ -169,30 +180,37 @@ class FormGenerator extends Component {
 
     />
 
+    if (field.type == 'textarea') {
+      input = <textarea className="form-control" rows="5" id="comment" {...other}/>
+    }
+
+    if (field.type == 'select' && field.options) {
+      var options = field.options.map((option) => <option key={option}> {option} </option>)
+      input = <select className='form-control' defaultValue = "Select A Tier" {...other}> <option></option> {options} </select>
+    }
+
+    if (field.type=='file' && values && values.values) {
+      var current = extractValue(values.values, field.input.name)
+      var label_text = 'Please Upload A File'
+      if (current) {
+        label_text = path.basename(current[0])
+      }
+      input = <div>
+        <Button onClick={() => {
+          var paths = dialog.showOpenDialog(undefined, {filters: [{"name": "pdfs", "extensions": ['.pdf', 'pdf']}]})
+          dispatch(change(jsonFile.name, field.input.name, paths))
+        }}>Upload File</Button>
+        <div className='col-sm-4' style={{padding: 0, float: 'right'}}>
+        <label style={{marginLeft: 0, paddingLeft: 0, wordWrap: 'normal', wordBreak: 'break-all'}}> {label_text} </label>
+        </div>
+        </div>
+    }
+
+
     var paddingLeft = field.type=='checkbox' ? 20 : 0
     var label = <label className={labelClass} style={{minWidth: '50%', paddingLeft: paddingLeft, fontWeight: 'normal'}}>{field.label}</label>
 
     var inpLab = field.type=='checkbox' ? <div className={inpLabDivClass}>{input}{label}</div> : <div className={inpLabDivClass}>{label}{input}</div>
-
-    if (field.type=='file' && values && values.values) {
-      var file = extractValue(values.values, field.input.name)
-      if (file && file.length!=0) {
-        var changeFile = () => {thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
-        changeFile=changeFile.bind(thisVar)
-        label = <div ><div style={{float: 'left', paddingLeft: paddingLeft}} className='col-form-label col-sm-6'>{field.label}</div></div>
-        var input2 = <div className='col-sm-6' style={{marginRight: '30px', marginRight: 0, padding: '0px'}}><div style={{position: 'relative'}}><button onClick={(e)=>{e.preventDefault(); changeFile()}} style={{marginRight: '8px', color: 'black', backgroundColor: 'white', border: 0,
-          paddingBottom: 1, fontFamily: 'Arial', fontSize: '11px', width: 76, height: 18, border: '1px solid #DBDBDB', boxShadow: '0 1px 1px 0 rgba(0,0,0,0.1)', float: 'left', fontWeight: 'normal'}}>Change File</button><div style={{float: 'left'}}>{file[0] ? file[0].name : 'Choose File'}</div></div></div>
-        inpLab = <div>{label}{input2}<div style={{visibility: 'hidden'}}>{input}</div></div>
-      }
-      else {
-        var chooseFile = () => {thisVar[`${jsonFile.name}_${field.input.name}_ref`].click()}
-        chooseFile=chooseFile.bind(thisVar)
-        label = <div ><div style={{float: 'left', paddingLeft: paddingLeft}} className='col-form-label col-sm-6'>{field.label}</div></div>
-        var input2 = <div className='col-sm-6' style={{marginRight: '30px', marginRight: 0, padding: '0px'}}><div style={{position: 'relative'}}><button onClick={(e)=>{e.preventDefault(); chooseFile()}} style={{marginRight: '8px', color: 'black', backgroundColor: 'white', border: 0,
-          paddingBottom: 1, fontFamily: 'Arial', fontSize: '11px', width: 76, height: 18, border: '1px solid #DBDBDB', boxShadow: '0 1px 1px 0 rgba(0,0,0,0.1)', float: 'left', fontWeight: 'normal'}}>Choose File</button><div style={{float: 'left'}}>{' No File chosen'}</div></div></div>
-        inpLab = <div>{label}{input2}<div style={{visibility: 'hidden'}}>{input}</div></div>
-      }
-    }
 
     return(
       <div style={{paddingTop: '10px', marginBottom: '15px', ...field.style}}>
@@ -208,8 +226,11 @@ class FormGenerator extends Component {
       );
   }
 
+
   renderGoods(goods) {
-    var {fields, jsonFile, thisVar, add, remove, values, open, close, dispatch, init, opened, renderField, questions, meta: {error, submitFailed}} = goods
+    var {fields, jsonFile, thisVar, add, remove, values, open, close, dispatch,
+      options, init, opened, renderField,
+      questions, meta: {error, submitFailed}} = goods
     if(!init[jsonFile.name] && fields.length==0 && opened!=undefined) {
       fields.push({})
       add(jsonFile.name, goods.fields.name, fields.length, init)
@@ -278,6 +299,8 @@ class FormGenerator extends Component {
               monetary,
               display,
               message,
+              options,
+              accept
             } = question
 
         return(
@@ -290,9 +313,11 @@ class FormGenerator extends Component {
             jsonFile={jsonFile}
             dispatch={dispatch}
             monetary={monetary}
+            options={options}
             display={display}
             calculate={calculate}
             normalize={normalize}
+            accept={accept}
             message={message}
             values={values}
             index={index}
@@ -388,18 +413,20 @@ class FormGenerator extends Component {
 
       const fields = jsonFile.single && jsonFile.single.length!=0 ?
       <div className='singleFields' style={{marginBottom: '40px'}}>
-      {jsonFile.single.map(({label, name, type='text'}, index2) => {
+      {jsonFile.single.map(({label, name, type='text', accept, options}, index2) => {
         return(
           <Field
             key={name}
       			label={label}
       			name={name}
             type={type}
+            options={options}
             jsonFile={jsonFile}
             monetary={monetary}
             dispatch={this.props.dispatch}
             values={this.props.budget[jsonFile.name]}
             thisVar={this}
+            accept={accept}
       			component={this.renderField}
       		/>
         )})} </div> : <div/>
@@ -453,35 +480,91 @@ class FormGenerator extends Component {
         </div>
 
 
-        if (jsonFile.isCalculator) {
-          return(
+        var total_table = <div/>
+        if (jsonFile.type==GENERAL && this.props.calculated.totals) {
+            var sections = []
+            var total = 0
+            for (var key in this.props.calculated.totals) {
+              var amount = this.props.calculated.totals[key]
+              total += amount
+              sections.push({section: snakeToTitle(key), key: key, amount: amount, total: '$' + amount})
+            }
+            sections.push({section: 'Grand Total', key: 'total', amount: total, total: '$' + total})
+
+            const columns = [{
+              dataField: 'section',
+              text: 'Budget Section'
+            }, {
+              dataField: 'total',
+              text: 'Section Total'
+            }];
+
+            var rowStyle = (row, index) => {
+              if (index==sections.length-1) {
+                if (total > this.props.calculated.tier_cap) {
+                  return ({color: 'red'})
+                }
+                return ({color: 'green'})
+              }
+              else {
+                if (this.props.configs && this.props.configs[row.key].max && row.amount > this.props.configs[row.key].max) {
+                  return ({color: 'red'})
+                }
+              }
+              return {}
+            }
+
+            total_table = (
+              <div>
+              <div className='chart_total'>
+              <BootstrapTable keyField='id' data={ sections } rowStyle={rowStyle} columns={ columns }/>
+              </div>
+              </div>
+            )
+        }
+
+        switch (jsonFile.type) {
+          case CALCULATOR:
+            return(
+              <div>
+                <div className='lower-page'>
+                <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
+                {repeated}
+                {fields}
+                {links}
+                </div>
+              </div>)
+          case GENERAL:
+            return(
             <div>
               <div className='lower-page'>
               <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
-              {repeated}
-              {fields}
-              {links}
+                {fields}
+                {total_table}
+                <Button type="submit" onClick={this.onSubmit.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>{jsonFile.save_text ? jsonFile.save_text : 'Save'}</Button>
+                <Link to="/" className="btn btn-danger" style={{fontSize: '15px'}}>Cancel</Link>
+                {links}
               </div>
-            </div>)
-        }
-        else {
-          return(
-          <div>
-            <div className='lower-page'>
-            <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
-              {repeated}
-              {fields}
-              {total}
-              {max_funding}
-              <Button type="submit" onClick={this.onSubmit.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>{jsonFile.save_text ? jsonFile.save_text : 'Save'}</Button>
-              <Link to="/" className="btn btn-danger" style={{fontSize: '15px'}}>Cancel</Link>
-              {links}
+              {modal}
             </div>
-            {modal}
-          </div>
-          );
-        }
-
+            );
+          default:
+            return(
+            <div>
+              <div className='lower-page'>
+              <h1 className='page-title text-center' style={{fontSize: '24px', marginBottom: '15px'}}> {jsonFile.title} </h1>
+                {repeated}
+                {fields}
+                {total}
+                {max_funding}
+                <Button type="submit" onClick={this.onSubmit.bind(this)} className="btn btn-primary" style={{fontSize: '15px', textShadow: '0px 0px #FFFFFF', fontWeight: 'normal'}}>{jsonFile.save_text ? jsonFile.save_text : 'Save'}</Button>
+                <Link to="/" className="btn btn-danger" style={{fontSize: '15px'}}>Cancel</Link>
+                {links}
+              </div>
+              {modal}
+            </div>
+            );
+          }
   	}
 }
 

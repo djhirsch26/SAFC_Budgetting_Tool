@@ -31,7 +31,7 @@ export const FAQ = {
       ]
     },
     {
-      "title": "Typically Prohibitted Expenses",
+      "title": "Typically Prohibited Expenses",
       "list": [
         "AV Equipment",
         "Team Dues",

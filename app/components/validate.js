@@ -27,6 +27,39 @@ export function validationCreator(jsonFile) {
                       errors[name][index][fieldName]=qField.errorMessage
                     }
                   }
+                  else {
+                    if (qField.min) {
+                      if (!isNaN(parseInt(item[fieldName])) &&  parseInt(item[fieldName]) < qField.min) {
+                        if(!errors[name]) {
+                          errors[name]={}
+                        }
+                        if(!errors[name][index]) {
+                          errors[name][index]={}
+                        }
+                        errors[name][index][fieldName] = qField.min_error ? qField.min_error : "Minimum amount is " + qField.min
+                      }
+                    }
+                    else if (qField.max) {
+                      var illegalInt = qField.type=='number' && !isNaN(parseInt(item[fieldName])) &&  parseInt(item[fieldName]) > qField.max
+                      var illegalLength = !illegalInt && String(item[fieldName]).length > qField.max
+                      if (illegalInt || illegalLength) {
+
+                        if(!errors[name]) {
+                          errors[name]={}
+                        }
+                        if(!errors[name][index]) {
+                          errors[name][index]={}
+                        }
+
+                        if (illegalInt) {
+                          errors[name][index][fieldName] = qField.max_error ? qField.max_error : "Maximum amount is " + qField.max
+                        }
+                        if (illegalLength) {
+                          errors[name][index][fieldName] = qField.max_error ? qField.max_error : "Maximum length is " + qField.max + " characters"
+                        }
+                      }
+                    }
+                  }
                 })
               })
             }

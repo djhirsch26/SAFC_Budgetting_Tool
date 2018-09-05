@@ -1,7 +1,28 @@
 
-import {DURABLE, TRAVEL} from '../constants'
+import {
+  DURABLE,
+  TRAVEL,
+  LOCAL,
+  PUBLICATION,
+  ADMIN,
+  SECTIONS,
+  GENERAL
+} from '../constants'
+
 import {durable} from '../budgetSections/durableConfig'
 import {travel} from '../budgetSections/travelConfig'
+import {local} from '../budgetSections/localConfig'
+import {admin} from '../budgetSections/adminConfig'
+import {publication} from '../budgetSections/publicationConfig'
+import {general} from '../budgetInfo/generalInfo'
+
+var configs = {}
+configs[DURABLE]=durable
+configs[TRAVEL]=travel
+configs[LOCAL]=local
+configs[ADMIN]=admin
+configs[PUBLICATION]=publication
+
 import PDFGenerator from './pdfGenerator'
 
 var fs = require('fs');
@@ -34,6 +55,17 @@ export function prepareBudgetToSave(budget) {
     }
   }
   return budget
+}
+
+export function prepareForGeneral(config, values, budget) {
+  var prepped = {...values}
+  var total = 0
+  SECTIONS.forEach(section => {
+    total += budget[section].total
+    prepped[section + '_total'] = budget[section].total
+  })
+  prepped['total'] = total
+  return prepped
 }
 
 export function prepareForRender(config, values) {
@@ -75,6 +107,10 @@ export function prepareForRender(config, values) {
   if (config.single) {
     for (var key in config.single) {
       var single = config.single[key]
+
+      if (single.type == 'calculated') {
+        calculated[single.name] = single.function(values)
+      }
       if (single.monetary) {
         total += parseFloat(temp[single.name])
       }
@@ -99,18 +135,27 @@ export function makePDF(values) {
   var counter = TITLE_SIZE + 5
 
   values = prepareBudgetToSave(values)
+  var preppedValues = {}
+  SECTIONS.forEach(section => {
+    preppedValues[section] = prepareForRender(configs[section], values[section])
+  })
 
-  var durable_values = prepareForRender(durable, values[DURABLE])
-  var travel_values = prepareForRender(travel, values[TRAVEL])
+  var prepped_general = prepareForRender(general, values[GENERAL])
+  var general_values = prepareForGeneral(general, prepped_general, preppedValues)
+
 
   var generator = new PDFGenerator(doc)
-  if (values[DURABLE]!={}) {
-    generator.makePDFGenerator(durable, durable_values)
+  if (values[GENERAL]!={}) {
+    generator.makeTitlePage(general, configs, general_values)
   }
-  if (values[TRAVEL]!={}){
-    generator.addPage()
-    generator.makePDFGenerator(travel, travel_values)
-  }
+  SECTIONS.forEach(section => {
+    if (values[section]!={}) {
+      generator.addPage()
+      generator.makePDFGenerator(configs[section], preppedValues[section])
+    }
+  })
+
+  generator.combinePDFs()
 
   return doc
 }

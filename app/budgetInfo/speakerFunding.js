@@ -1,5 +1,6 @@
 import {
   LOCAL_CALC_NAME,
+  CALCULATOR,
   SPEAKER_MILE,
   SPEAKER_NIGHT,
   SPEAKER_FOOD,
@@ -8,7 +9,7 @@ import {
 
 export const speaker_calc = {
   "name": LOCAL_CALC_NAME,
-  "isCalculator": true,
+  "type": CALCULATOR,
   "title": "Speaker Funding Calculator",
   "single": [
         {

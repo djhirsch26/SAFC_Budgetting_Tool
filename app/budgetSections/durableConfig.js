@@ -21,8 +21,14 @@ export const durable = {
         {
         "label" : "Name of Good",
         "name": "name",
+        "max": 60,
         "errorMessage": "Enter a name for this good",
         "defaultValue": "HI"
+        },
+        {
+          "label": "Description",
+          "name": "description",
+          "type": "textarea"
         },
         {
           "label": "Where will this item be stored (must be on Cornell's Campus)",
@@ -50,6 +56,7 @@ export const durable = {
           "label": "Supporting Documentation",
           "name": "supporting_documentation",
           "type": "file",
+          "accept": "application/pdf",
           "errorMessage": "Please Upload Supporting Documentation"
         }
       ]
@@ -61,6 +68,7 @@ export const durable = {
       "label" : "Last 3 Years of Goods",
       "name": "last_3_years_of_goods",
       "type": "file",
+      "accept": "application/pdf",
       "errorMessage": "Please Upload the Last 3 Years of Durable Goods "
     },
   ],

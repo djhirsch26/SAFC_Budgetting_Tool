@@ -1,0 +1,92 @@
+{
+    "durable_goods": {
+        "durable_goods": [
+            {
+                "name": "ghjgf",
+                "location": "gfchjk",
+                "life_span": true,
+                "price": "567",
+                "supporting_documentation": [
+                    {
+                        "lastModified": 1472737818000,
+                        "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                        "name": "Harvard Update Intel Semi.docx",
+                        "size": 11155,
+                        "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    }
+                ]
+            }
+        ],
+        "last_3_years_of_goods": [
+            {
+                "lastModified": 1472737818000,
+                "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                "name": "Science Olympiad Essay Draft 3.docx",
+                "size": 11220,
+                "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            }
+        ]
+    },
+    "travel": {
+        "travel_events": [
+            {
+                "name": "ROAR",
+                "criteria": true,
+                "proof_of_event": [
+                    {
+                        "lastModified": 1472737818000,
+                        "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                        "name": "Science Olympiad Essay Draft 3.docx",
+                        "size": 11220,
+                        "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    }
+                ],
+                "miles (one way)": "34"
+            }
+        ]
+    },
+    "admin": {
+        "admin_expenses": [
+            {
+                "name": "kbhjgh",
+                "price": "687"
+            }
+        ]
+    },
+    "local": {
+        "local_expense": [
+            {
+                "name": "78",
+                "price": "324"
+            }
+        ]
+    },
+    "publication": {
+        "publication_expenses": [
+            {
+                "critirea": true,
+                "name": "GARGLE",
+                "copies": "23",
+                "price": "345",
+                "price_quote": [
+                    {
+                        "lastModified": 1472737818000,
+                        "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                        "name": "Harvard Supplement Essay.pdf",
+                        "size": 137286,
+                        "type": "application/pdf"
+                    }
+                ],
+                "past_copy": [
+                    {
+                        "lastModified": 1472737818000,
+                        "lastModifiedDate": "2016-09-01T13:50:18.000Z",
+                        "name": "Science Olympiad Essay Draft 3.docx",
+                        "size": 11220,
+                        "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    }
+                ]
+            }
+        ]
+    }
+}

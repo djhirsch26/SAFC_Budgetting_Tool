@@ -3,6 +3,8 @@ import {
   ADD_TRAVEL,
   ADD_ADMIN,
   ADD_LOCAL,
+  ADD_PUBLICATION,
+  ADD_GENERAL,
   LOAD
 } from '../actions'
 
@@ -13,7 +15,8 @@ import {
   TRAVEL,
   ADMIN,
   LOCAL,
-  PUBLICATION
+  PUBLICATION,
+  GENERAL
 } from '../constants'
 
 var initialState = {}
@@ -23,6 +26,7 @@ initialState[TRAVEL] = {}
 initialState[ADMIN] = {}
 initialState[LOCAL] = {}
 initialState[PUBLICATION] = {}
+initialState[GENERAL] = {}
 
 export default function(state=initialState, action) {
 	switch(action.type) {
@@ -39,7 +43,13 @@ export default function(state=initialState, action) {
     return {...state, admin: action.payload.admin}
   case ADD_LOCAL:
     writeBudget({...state, local: action.payload.local})
-    return {...state, admin: action.payload.local}
+    return {...state, local: action.payload.local}
+  case ADD_PUBLICATION:
+    writeBudget({...state, publication: action.payload.publication})
+    return {...state, publication: action.payload.publication}
+  case ADD_GENERAL:
+    writeBudget({...state, general: action.payload.general})
+    return {...state, general: action.payload.general}
   case LOAD:
     return {...state, ...action.payload}
 	default:

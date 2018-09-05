@@ -14,23 +14,35 @@ import {
   ADMIN,
   LOCAL,
   PUBLICATION,
-  LOCAL_CALC_NAME
+  GENERAL,
+  LOCAL_CALC_NAME,
+  SECTIONS
 } from '../constants'
 
 import {
   addDurable,
   addTravel,
   addAdmin,
-  addLocal
+  addLocal,
+  addPublication,
+  addGeneral
 } from '../actions'
 
 import {durable as durableConfig} from '../budgetSections/durableConfig'
 import {travel as travelConfig} from '../budgetSections/travelConfig'
 import {admin as adminConfig} from '../budgetSections/adminConfig'
 import {local as localConfig} from '../budgetSections/localConfig'
+import {publication as publicationConfig} from '../budgetSections/publicationConfig'
 
+import {general as generalConfig} from '../budgetInfo/generalInfo'
 import {speaker_calc as speakerCalc} from '../budgetInfo/speakerFunding'
 
+var configs = {}
+configs[DURABLE]=durableConfig
+configs[TRAVEL]=travelConfig
+configs[LOCAL]=localConfig
+configs[ADMIN]=adminConfig
+configs[PUBLICATION]=publicationConfig
 
 import FormGenerator from './formGenerator'
 
@@ -57,13 +69,13 @@ function classMaker(name, config, onSubmit_) {
       }
 
       render() {
-          var {handleSubmit, calculated} = this.props;
-          console.log(this.props.location)
+          var {handleSubmit, calculated, configs} = this.props;
       		return(
           <div>
           <form onSubmit={handleSubmit(this.onSubmit.bind(this))}>
       	   <FormGenerator
            calculated={calculated}
+           configs={configs}
            json={this.config}
            />
           </form>
@@ -76,6 +88,8 @@ function classMaker(name, config, onSubmit_) {
 
 }
 
+
+/* ------------------------- SECTION/CALCULATOR STP ------------------------- */
 function getTotalSpent(state, selector, config, section) {
   var temp = {}
   var values = {}
@@ -182,6 +196,63 @@ function generateSection(name, adderFunction, config, onSubmit) {
   )
 }
 
+
+/* ------------------------- GENERAL STP ----------------------------- */
+function getTotals(state, selectors, config, section) {
+  var totals = {}
+  console.log(state)
+  SECTIONS.forEach(section => {
+    var calced = getTotalSpent(state, selectors[section], configs[section], section)
+    totals[section] = calced.total
+  })
+  var calculated = getTotalSpent(state, selectors[GENERAL], generalConfig, GENERAL)
+  // totals[ADMIN] = getTotalSpent(state, selectors, adminConfig, ADMIN)
+  // totals[DURABLE] = getTotalSpent(state, selector, durableConfig, DURABLE)
+  // totals[LOCAL] = getTotalSpent(state, selector, localConfig, LOCAL)
+  // totals[TRAVEL] = getTotalSpent(state, selector, travelConfig, TRAVEL)
+  // totals[PUBLICATION] = getTotalSpent(state, selector, publicationConfig, PUBLICATION)
+
+  // console.log(totals[ADMIN])
+  // totals[GENERAL]= totals[ADMIN] + totals[DURABLE] + totals[LOCAL] + totals[TRAVEL] + totals[PUBLICATION]
+  return {...calculated, totals: totals}
+}
+
+function generateGeneralSTP(section, config) {
+
+  var selectors = {}
+  SECTIONS.forEach(section => {
+    selectors[section] = formValueSelector(section)
+  })
+  selectors[GENERAL] = formValueSelector(GENERAL)
+ return (
+    function mapStateToProps(state) {
+      var calculated = getTotals(state, selectors, config, section)
+      return ({
+        initialValues: state.budget[section],
+        calculated: calculated,
+        whole: state.budget,
+        configs: configs
+      })
+    }
+  )
+}
+
+function generateGeneral(name, adderFunction, config, onSubmit) {
+  return (
+    connect(
+      generateGeneralSTP(name, config),
+      {adderFunction}
+    )(reduxForm({
+    	validate: validationCreator(config),
+    	form: name,
+      // enableReinitialize: true,
+      destroyOnUnmount: false
+    })(
+    classMaker(name, config, onSubmit)
+    ))
+  )
+}
+
 function onSubmitDurable(values) {
   // console.log('DURABBLE', values)
 }
@@ -194,10 +265,19 @@ function onSubmitAdmin(values) {
 function onSubmitLocal(values) {
 
 }
+function onSubmitPublication(values) {
+
+}
+function onSubmitGeneral(values) {
+
+}
 
 export const durable = generateSection(DURABLE, addDurable, durableConfig, onSubmitDurable)
 export const travel = generateSection(TRAVEL, addTravel, travelConfig, onSubmitTravel)
 export const admin = generateSection(ADMIN, addAdmin, adminConfig, onSubmitAdmin)
 export const local = generateSection(LOCAL, addLocal, localConfig, onSubmitLocal)
+export const publication = generateSection(PUBLICATION, addPublication, publicationConfig, onSubmitPublication)
+
+export const general = generateGeneral(GENERAL, addGeneral, generalConfig, onSubmitGeneral)
 
 export const speaker_calc = generateSection(LOCAL_CALC_NAME, undefined, speakerCalc, ()=>{})
