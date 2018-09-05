@@ -1,6 +1,6 @@
 # SAFC Budgeting Tool
 
-This budgeting tool uses the [https://github.com/chentsulin/electron-react-boilerplate]electron-react-boilerplate. For all questions concerning deployment, updating the baseline, and all code not in the `./app` directory, please see their documentation.
+This budgeting tool uses [electron-react-boilerplate](https://github.com/chentsulin/electron-react-boilerplate). For all questions concerning deployment, updating the baseline, and all code not in the `./app` directory, please see their documentation.
 
 ## Rationale
 In the Spring 2018 Semester, the SAFC zero funded nearly 20% of organizations due to preventable budget mistakes. This tool will serve as a measure to help organizations have all correct information, caps, and documentation in a single easy to read PDF
