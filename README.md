@@ -5,6 +5,9 @@ This budgeting tool uses [electron-react-boilerplate](https://github.com/chentsu
 ## Rationale
 In the Spring 2018 Semester, the SAFC zero funded nearly 20% of organizations due to preventable budget mistakes. This tool will serve as a measure to help organizations have all correct information, caps, and documentation in a single easy to read PDF
 
+## Running the code
+Clone the git repository, run `npm init` followed by `npm run dev`. Deployments of the code will have an installer created at a later date.
+
 ## The Generator Framework
 As the requirements of the SAFC budget's change every semester, the tool needs to easily modifiable. The tool must also be able to provide supporting calculators and Pages
 
